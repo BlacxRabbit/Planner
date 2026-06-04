@@ -1,13 +1,17 @@
-# Momentum Planner
+# Kawaii Life Planner
 
-Kişisel günlük, haftalık ve aylık planlama için hazırlanmış ilk frontend taslağı.
+Soft pembe konseptli kişisel planner frontend taslağı. Proje Vite + React ile
+çalışır; ileride mobil tarafa taşımak için component mantığıyla ilerletiliyor.
 
 ## Özellikler
 
-- Günlük, haftalık ve aylık görev görünümü
-- Mini takvim ve seçilen tarihe hızlı görev/anımsatıcı ekleme
+- Haftalık gün ve saat bloklarına ayrılmış ana takvim
+- Seçilen saat hücresinden hızlı görev/anımsatıcı ekleme
 - Saatli veya saatsiz anımsatıcılar
 - Görev tamamlama, silme ve öncelik etiketi
+- Canlı saat paneli
+- Focus/break sayaç modu
+- İleride eklenecek karakter ve tavşan/kedi ikon konsepti için ayrılmış alanlar
 - Tarayıcı `localStorage` ile verileri saklama
 
 ## Çalıştırma
