@@ -140,6 +140,8 @@ function App() {
   const [timerMode, setTimerMode] = useState("focus");
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
   const [timerRunning, setTimerRunning] = useState(false);
+  const [quickPlan, setQuickPlan] = useState("");
+  const [quickDay, setQuickDay] = useState("today");
   const [draftSlot, setDraftSlot] = useState({
     date: state.selectedDate,
     time: "10:00",
@@ -187,6 +189,38 @@ function App() {
   const completedCount = state.tasks.filter((task) => task.done).length;
   const activeCount = state.tasks.filter((task) => !task.done).length;
   const activeTheme = themes[theme];
+  const todayIso = toISODate(today);
+  const tomorrowIso = toISODate(addDays(today, 1));
+  const dailyTodoTasks = state.tasks
+    .filter((task) => task.scope === "daily" && task.date === todayIso && !task.done)
+    .sort((first, second) => (first.time || "99:99").localeCompare(second.time || "99:99"));
+
+  const addQuickPlan = (event) => {
+    event.preventDefault();
+    const title = quickPlan.trim();
+    if (!title) return;
+
+    const targetDate = quickDay === "tomorrow" ? tomorrowIso : todayIso;
+    const dailyFolder = state.folders.find((folder) => folder.id === "daily-default") || state.folders[0];
+
+    setState((current) => ({
+      ...current,
+      selectedDate: targetDate,
+      tasks: [
+        ...current.tasks,
+        {
+          id: crypto.randomUUID(),
+          title,
+          folderId: dailyFolder.id,
+          scope: "daily",
+          date: targetDate,
+          time: "",
+          done: false,
+        },
+      ],
+    }));
+    setQuickPlan("");
+  };
 
   const selectSlot = (date, time) => {
     setState((current) => ({ ...current, selectedDate: date }));
@@ -261,11 +295,34 @@ function App() {
 
           <section className="todo-card">
             <div className="section-title">
-              <span>To-dos</span>
-              <strong>{activeCount}</strong>
+              <span>Bugünkü To-dos</span>
+              <strong>{dailyTodoTasks.length}</strong>
             </div>
+            <form className="quick-plan-form" onSubmit={addQuickPlan}>
+              <input
+                value={quickPlan}
+                onChange={(event) => setQuickPlan(event.target.value)}
+                placeholder="Hızlı plan ekle"
+              />
+              <div className="quick-plan-actions">
+                <button className={quickDay === "today" ? "is-active" : ""} type="button" onClick={() => setQuickDay("today")}>
+                  Bugün
+                </button>
+                <button
+                  className={quickDay === "tomorrow" ? "is-active" : ""}
+                  type="button"
+                  onClick={() => setQuickDay("tomorrow")}
+                >
+                  Yarın
+                </button>
+                <button type="submit">Ekle</button>
+              </div>
+            </form>
             <div className="todo-list">
-              {state.tasks.slice(0, 5).map((task) => (
+              {dailyTodoTasks.length === 0 ? (
+                <p className="empty-note">Bugün için günlük plan yok.</p>
+              ) : null}
+              {dailyTodoTasks.slice(0, 6).map((task) => (
                 <button
                   className={`todo-item ${task.done ? "is-done" : ""}`}
                   key={task.id}

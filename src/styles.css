@@ -737,6 +737,46 @@ form,
   gap: 10px;
 }
 
+.quick-plan-form {
+  margin-bottom: 12px;
+}
+
+.quick-plan-form input {
+  min-height: 42px;
+}
+
+.quick-plan-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.quick-plan-actions button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--rose);
+  font-weight: 900;
+}
+
+.quick-plan-actions button.is-active,
+.quick-plan-actions button[type="submit"] {
+  background: var(--pink-400);
+  color: #fff;
+}
+
+.empty-note {
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 12px;
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
 .folder-form {
   margin-bottom: 14px;
 }
