@@ -75,6 +75,20 @@ const addHoursToTime = (time, hoursToAdd) => {
   return `${String(nextHour).padStart(2, "0")}:${String(minute || 0).padStart(2, "0")}`;
 };
 
+const timeToMinutes = (time) => {
+  if (!time) return 0;
+  const [hour, minute] = time.split(":").map(Number);
+  return hour * 60 + (minute || 0);
+};
+
+const getPlanDurationHours = (startTime, endTime) => {
+  if (!startTime || !endTime) return 1;
+  const duration = (timeToMinutes(endTime) - timeToMinutes(startTime)) / 60;
+  return Math.max(1, Math.min(12, duration));
+};
+
+const getPlanDurationHeight = (startTime, endTime) => `${Math.round(getPlanDurationHours(startTime, endTime) * 72 - 12)}px`;
+
 const defaultState = {
   selectedDate: toISODate(today),
   folders: [
@@ -449,10 +463,26 @@ function App() {
                       key={`${iso}-${hour}`}
                       onClick={() => openSlotPopup(iso, hour)}
                     >
+                      {cellTasks.length > 0 ? (
+                        <button
+                          className="slot-add-button"
+                          type="button"
+                          aria-label="Bu saate plan ekle"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openSlotPopup(iso, hour);
+                          }}
+                        >
+                          +
+                        </button>
+                      ) : null}
                       {[...cellTasks, ...cellReminders].map((item) => (
                         <article
                           className={`event-pill ${"folderId" in item ? "" : "no-check"} ${item.done ? "is-done" : ""}`}
                           key={item.id}
+                          style={{
+                            "--event-height": "folderId" in item ? getPlanDurationHeight(item.time, item.endTime) : "60px",
+                          }}
                         >
                           {"folderId" in item ? (
                             <button
@@ -559,6 +589,9 @@ function App() {
       {slotDraft ? (
         <div className="slot-popover-backdrop" role="presentation" onClick={() => setSlotDraft(null)}>
           <form className="slot-popover" onClick={(event) => event.stopPropagation()} onSubmit={addSlotPlan}>
+            <button className="popup-close" type="button" aria-label="Kapat" onClick={() => setSlotDraft(null)}>
+              ×
+            </button>
             <div className="section-title">
               <span>Takvime ekle</span>
               <strong>{slotDraft.time}</strong>
@@ -608,6 +641,9 @@ function App() {
       {detailTask ? (
         <div className="slot-popover-backdrop" role="presentation" onClick={() => setDetailTaskId(null)}>
           <section className="slot-popover task-detail-popover" onClick={(event) => event.stopPropagation()}>
+            <button className="popup-close" type="button" aria-label="Kapat" onClick={() => setDetailTaskId(null)}>
+              ×
+            </button>
             <div className="detail-head">
               <div>
                 <span>Plan detayı</span>

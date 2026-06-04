@@ -1034,12 +1034,14 @@ form,
 }
 
 .time-cell {
+  position: relative;
   min-height: 72px;
   border-left: 0;
   background: var(--card-bg);
   padding: 6px;
   text-align: left;
   cursor: pointer;
+  overflow: visible;
 }
 
 .time-cell:hover,
@@ -1052,6 +1054,9 @@ form,
   grid-template-columns: 22px minmax(0, 1fr);
   gap: 6px;
   align-items: start;
+  position: relative;
+  z-index: 3;
+  min-height: var(--event-height, 60px);
   margin-bottom: 5px;
   border: 1px solid var(--pill-border);
   border-radius: 7px;
@@ -1061,6 +1066,25 @@ form,
   font-size: 0.74rem;
   font-weight: 900;
   overflow-wrap: anywhere;
+}
+
+.slot-add-button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 4;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--card-bg);
+  color: var(--rose);
+  padding: 0;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(20, 18, 22, 0.12);
 }
 
 .event-pill.is-done {
@@ -1117,12 +1141,31 @@ form,
 }
 
 .slot-popover {
+  position: relative;
   width: min(420px, 100%);
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--card-bg);
   box-shadow: var(--shadow);
   padding: 18px;
+}
+
+.popup-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--rose);
+  padding: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .slot-popover p {
