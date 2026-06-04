@@ -87,7 +87,7 @@ const getPlanDurationHours = (startTime, endTime) => {
   return Math.max(1, Math.min(12, duration));
 };
 
-const getPlanDurationHeight = (startTime, endTime) => `${Math.round(getPlanDurationHours(startTime, endTime) * 72 - 12)}px`;
+const getPlanGridSpan = (startTime, endTime) => Math.max(1, Math.ceil(getPlanDurationHours(startTime, endTime)));
 
 const defaultState = {
   selectedDate: toISODate(today),
@@ -169,6 +169,9 @@ function App() {
   const [slotEndTime, setSlotEndTime] = useState("11:00");
   const [detailTaskId, setDetailTaskId] = useState(null);
   const [detailEditing, setDetailEditing] = useState(false);
+  const [detailTitle, setDetailTitle] = useState("");
+  const [detailStartTime, setDetailStartTime] = useState("");
+  const [detailEndTime, setDetailEndTime] = useState("");
   const [detailNote, setDetailNote] = useState("");
   const [draftSlot, setDraftSlot] = useState({
     date: state.selectedDate,
@@ -213,6 +216,50 @@ function App() {
       (first.time || "99:99").localeCompare(second.time || "99:99")
     );
   }, [state]);
+
+  const calendarItems = useMemo(() => {
+    const taskItems = state.tasks
+      .filter((task) => task.date && task.time)
+      .map((task) => ({ ...task, kind: "task" }));
+    const reminderItems = state.reminders
+      .filter((reminder) => reminder.date && reminder.time)
+      .map((reminder) => ({ ...reminder, kind: "reminder" }));
+
+    const positionedItems = [...taskItems, ...reminderItems]
+      .map((item) => {
+        const dayIndex = weekDays.findIndex((day) => toISODate(day) === item.date);
+        const hourIndex = hours.findIndex((hour) => hour.slice(0, 2) === item.time.slice(0, 2));
+        if (dayIndex < 0 || hourIndex < 0) return null;
+
+        const span = item.kind === "task" ? getPlanGridSpan(item.time, item.endTime) : 1;
+        return {
+          ...item,
+          dayIndex,
+          hourIndex,
+          span: Math.min(span, hours.length - hourIndex),
+        };
+      })
+      .filter(Boolean);
+
+    const slotTotals = positionedItems.reduce((totals, item) => {
+      const key = `${item.date}-${item.time}`;
+      totals.set(key, (totals.get(key) || 0) + 1);
+      return totals;
+    }, new Map());
+    const slotIndexes = new Map();
+
+    return positionedItems.map((item) => {
+      const key = `${item.date}-${item.time}`;
+      const stackIndex = slotIndexes.get(key) || 0;
+      slotIndexes.set(key, stackIndex + 1);
+
+      return {
+        ...item,
+        stackIndex,
+        stackTotal: slotTotals.get(key) || 1,
+      };
+    });
+  }, [hours, state.reminders, state.tasks, weekDays]);
 
   const completedCount = state.tasks.filter((task) => task.done).length;
   const activeCount = state.tasks.filter((task) => !task.done).length;
@@ -308,14 +355,31 @@ function App() {
   const openTaskDetail = (task) => {
     setDetailTaskId(task.id);
     setDetailEditing(false);
+    setDetailTitle(task.title || "");
+    setDetailStartTime(task.time || "");
+    setDetailEndTime(task.endTime || "");
     setDetailNote(task.note || "");
   };
 
-  const saveTaskNote = () => {
+  const saveTaskDetail = () => {
     if (!detailTask) return;
+    const title = detailTitle.trim();
+    if (!title) return;
+
     setState((current) => ({
       ...current,
-      tasks: current.tasks.map((task) => (task.id === detailTask.id ? { ...task, note: detailNote.trim() } : task)),
+      selectedDate: detailTask.date || current.selectedDate,
+      tasks: current.tasks.map((task) =>
+        task.id === detailTask.id
+          ? {
+              ...task,
+              title,
+              time: detailStartTime,
+              endTime: detailEndTime,
+              note: detailNote.trim(),
+            }
+          : task
+      ),
     }));
     setDetailEditing(false);
   };
@@ -450,68 +514,68 @@ function App() {
                 <div className="time-label">{hour}</div>
                 {weekDays.map((day) => {
                   const iso = toISODate(day);
-                  const cellTasks = state.tasks.filter(
-                    (task) => task.date === iso && (task.time || "").slice(0, 2) === hour.slice(0, 2)
-                  );
-                  const cellReminders = state.reminders.filter(
-                    (reminder) => reminder.date === iso && (reminder.time || "").slice(0, 2) === hour.slice(0, 2)
-                  );
 
                   return (
                     <div
                       className={`time-cell ${iso === state.selectedDate ? "is-selected" : ""}`}
                       key={`${iso}-${hour}`}
                       onClick={() => openSlotPopup(iso, hour)}
-                    >
-                      {cellTasks.length > 0 ? (
-                        <button
-                          className="slot-add-button"
-                          type="button"
-                          aria-label="Bu saate plan ekle"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            openSlotPopup(iso, hour);
-                          }}
-                        >
-                          +
-                        </button>
-                      ) : null}
-                      {[...cellTasks, ...cellReminders].map((item) => (
-                        <article
-                          className={`event-pill ${"folderId" in item ? "" : "no-check"} ${item.done ? "is-done" : ""}`}
-                          key={item.id}
-                          style={{
-                            "--event-height": "folderId" in item ? getPlanDurationHeight(item.time, item.endTime) : "60px",
-                          }}
-                        >
-                          {"folderId" in item ? (
-                            <button
-                              className="event-check"
-                              type="button"
-                              aria-label="Görevi tamamla"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                toggleTask(item.id);
-                              }}
-                            />
-                          ) : null}
-                          <button
-                            className="event-title"
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              if ("folderId" in item) openTaskDetail(item);
-                            }}
-                          >
-                            <span>{item.title}</span>
-                            {"endTime" in item && item.endTime ? <small>{item.time} - {item.endTime}</small> : null}
-                          </button>
-                        </article>
-                      ))}
-                    </div>
+                    />
                   );
                 })}
               </React.Fragment>
+            ))}
+
+            {calendarItems.map((item) => (
+              <article
+                className={`event-pill calendar-event ${item.kind === "task" ? "" : "no-check"} ${item.done ? "is-done" : ""}`}
+                key={`${item.kind}-${item.id}`}
+                style={{
+                  gridColumn: item.dayIndex + 2,
+                  gridRow: `${item.hourIndex + 2} / span ${item.span}`,
+                  "--stack-index": item.stackIndex,
+                  "--stack-offset": `${(item.stackIndex * 100) / item.stackTotal}%`,
+                  "--stack-height":
+                    item.stackTotal > 1 ? `calc(${100 / item.stackTotal}% - 8px)` : "calc(100% - 10px)",
+                  "--stack-total": item.stackTotal,
+                }}
+              >
+                {item.kind === "task" ? (
+                  <button
+                    className="event-check"
+                    type="button"
+                    aria-label="Görevi tamamla"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      toggleTask(item.id);
+                    }}
+                  />
+                ) : null}
+                <button
+                  className="event-title"
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (item.kind === "task") openTaskDetail(item);
+                  }}
+                >
+                  <span>{item.title}</span>
+                  {item.kind === "task" && item.endTime ? <small>{item.time} - {item.endTime}</small> : null}
+                </button>
+                {item.kind === "task" ? (
+                  <button
+                    className="slot-add-button"
+                    type="button"
+                    aria-label="Bu saate plan ekle"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openSlotPopup(item.date, item.time);
+                    }}
+                  >
+                    +
+                  </button>
+                ) : null}
+              </article>
             ))}
           </div>
         </section>
@@ -661,9 +725,31 @@ function App() {
             {detailEditing ? (
               <>
                 <label>
+                  Plan başlığı
+                  <input
+                    autoFocus
+                    value={detailTitle}
+                    onChange={(event) => setDetailTitle(event.target.value)}
+                    placeholder="Plan başlığı"
+                  />
+                </label>
+                <div className="slot-time-row">
+                  <label>
+                    Başlangıç
+                    <input
+                      value={detailStartTime}
+                      onChange={(event) => setDetailStartTime(event.target.value)}
+                      type="time"
+                    />
+                  </label>
+                  <label>
+                    Bitiş
+                    <input value={detailEndTime} onChange={(event) => setDetailEndTime(event.target.value)} type="time" />
+                  </label>
+                </div>
+                <label>
                   Detay notu
                   <textarea
-                    autoFocus
                     value={detailNote}
                     onChange={(event) => setDetailNote(event.target.value)}
                     placeholder="Bu planla ilgili detayları düzenle..."
@@ -673,7 +759,7 @@ function App() {
                   <button className="secondary-action" type="button" onClick={() => setDetailEditing(false)}>
                     Vazgeç
                   </button>
-                  <button className="submit-button" type="button" onClick={saveTaskNote}>
+                  <button className="submit-button" type="button" onClick={saveTaskDetail}>
                     Kaydet
                   </button>
                 </div>
