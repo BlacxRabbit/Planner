@@ -142,6 +142,8 @@ function App() {
   const [timerRunning, setTimerRunning] = useState(false);
   const [quickPlan, setQuickPlan] = useState("");
   const [quickDay, setQuickDay] = useState("today");
+  const [slotDraft, setSlotDraft] = useState(null);
+  const [slotTitle, setSlotTitle] = useState("");
   const [draftSlot, setDraftSlot] = useState({
     date: state.selectedDate,
     time: "10:00",
@@ -220,6 +222,39 @@ function App() {
       ],
     }));
     setQuickPlan("");
+  };
+
+  const openSlotPopup = (date, time) => {
+    selectSlot(date, time);
+    setSlotDraft({ date, time });
+    setSlotTitle("");
+  };
+
+  const addSlotPlan = (event) => {
+    event.preventDefault();
+    const title = slotTitle.trim();
+    if (!title || !slotDraft) return;
+
+    const dailyFolder = state.folders.find((folder) => folder.id === "daily-default") || state.folders[0];
+
+    setState((current) => ({
+      ...current,
+      selectedDate: slotDraft.date,
+      tasks: [
+        ...current.tasks,
+        {
+          id: crypto.randomUUID(),
+          title,
+          folderId: dailyFolder.id,
+          scope: "daily",
+          date: slotDraft.date,
+          time: slotDraft.time,
+          done: false,
+        },
+      ],
+    }));
+    setSlotDraft(null);
+    setSlotTitle("");
   };
 
   const selectSlot = (date, time) => {
@@ -380,7 +415,7 @@ function App() {
                       className={`time-cell ${iso === state.selectedDate ? "is-selected" : ""}`}
                       key={`${iso}-${hour}`}
                       type="button"
-                      onClick={() => selectSlot(iso, hour)}
+                      onClick={() => openSlotPopup(iso, hour)}
                     >
                       {[...cellTasks, ...cellReminders].map((item) => (
                         <span className={`event-pill ${item.done ? "is-done" : ""}`} key={item.id}>
@@ -465,6 +500,31 @@ function App() {
           removeTask={removeTask}
         />
       )}
+      {slotDraft ? (
+        <div className="slot-popover-backdrop" role="presentation" onClick={() => setSlotDraft(null)}>
+          <form className="slot-popover" onClick={(event) => event.stopPropagation()} onSubmit={addSlotPlan}>
+            <div className="section-title">
+              <span>Takvime ekle</span>
+              <strong>{slotDraft.time}</strong>
+            </div>
+            <p>{dateFormatter.format(new Date(`${slotDraft.date}T12:00:00`))}</p>
+            <input
+              autoFocus
+              value={slotTitle}
+              onChange={(event) => setSlotTitle(event.target.value)}
+              placeholder="Bu saate ne ekleyelim?"
+            />
+            <div className="slot-popover-actions">
+              <button className="secondary-action" type="button" onClick={() => setSlotDraft(null)}>
+                Vazgeç
+              </button>
+              <button className="submit-button" type="submit">
+                Ekle
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
     </main>
   );
 }

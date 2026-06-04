@@ -1064,6 +1064,37 @@ form,
   text-decoration: line-through;
 }
 
+.slot-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 18, 22, 0.34);
+  padding: 18px;
+}
+
+.slot-popover {
+  width: min(420px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.slot-popover p {
+  margin: -4px 0 4px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.slot-popover-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 .clock-card {
   display: grid;
   gap: 10px;
