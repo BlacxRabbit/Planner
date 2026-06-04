@@ -191,6 +191,7 @@ button {
 .metric-card,
 .calendar-panel,
 .reminder-panel,
+.schedule-panel,
 .plan-column {
   border: 1px solid rgba(219, 226, 231, 0.9);
   border-radius: 8px;
@@ -266,7 +267,7 @@ h2 {
 }
 
 .task-form {
-  grid-template-columns: minmax(190px, 1fr) 130px 150px 120px;
+  grid-template-columns: minmax(190px, 1fr) 130px 150px 120px 120px;
 }
 
 label {
@@ -319,6 +320,164 @@ select:focus {
 .task-board {
   display: grid;
   gap: 12px;
+}
+
+.schedule-panel {
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.schedule-panel[hidden],
+.task-board[hidden] {
+  display: none;
+}
+
+.schedule-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.schedule-toolbar h3 {
+  margin: 4px 0 0;
+  font-size: 1.15rem;
+}
+
+.schedule-range {
+  border-radius: 8px;
+  background: #eaf1f8;
+  color: var(--blue);
+  padding: 9px 12px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 74px repeat(7, minmax(132px, 1fr));
+  max-height: 680px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.schedule-corner,
+.schedule-day-heading,
+.schedule-hour,
+.schedule-cell {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.schedule-corner,
+.schedule-day-heading {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  min-height: 64px;
+  background: #f7f4ed;
+}
+
+.schedule-corner {
+  left: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.schedule-day-heading {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.schedule-day-heading strong {
+  color: var(--sage-dark);
+  text-transform: capitalize;
+}
+
+.schedule-day-heading span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 8px;
+  background: #fff;
+  font-weight: 800;
+}
+
+.schedule-hour {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: grid;
+  min-height: 78px;
+  place-items: start center;
+  padding-top: 12px;
+  color: var(--muted);
+  background: #fbfaf6;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.schedule-cell {
+  min-height: 78px;
+  padding: 7px;
+  background: #fff;
+}
+
+.schedule-cell.is-today {
+  background: #f2f8f6;
+}
+
+.schedule-cell:hover {
+  background: #fff8ea;
+}
+
+.schedule-item {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+  margin-bottom: 6px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: left;
+  font-weight: 800;
+}
+
+.schedule-item span {
+  overflow-wrap: anywhere;
+}
+
+.schedule-item small {
+  color: rgba(23, 33, 43, 0.64);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.schedule-item.task {
+  color: var(--sage-dark);
+  background: #e7f1ed;
+}
+
+.schedule-item.task.done {
+  opacity: 0.58;
+  text-decoration: line-through;
+}
+
+.schedule-item.reminder {
+  color: #8a3c31;
+  background: #fff0ed;
 }
 
 .task-card {
@@ -529,7 +688,7 @@ select:focus {
 
   .nav-list {
     grid-auto-flow: initial;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-left: 0;
   }
 
@@ -566,5 +725,14 @@ select:focus {
   .delete-button {
     grid-column: 2;
     justify-self: start;
+  }
+
+  .schedule-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .schedule-grid {
+    grid-template-columns: 64px repeat(7, minmax(118px, 1fr));
   }
 }

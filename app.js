@@ -30,6 +30,7 @@ const defaultState = {
       title: "Haftanın üç ana hedefini yaz",
       priority: "high",
       date: toISODate(today),
+      time: "09:00",
       done: false,
     },
     {
@@ -37,6 +38,7 @@ const defaultState = {
       title: "30 dakikalık odak bloğu ayır",
       priority: "medium",
       date: toISODate(today),
+      time: "14:00",
       done: false,
     },
     {
@@ -44,6 +46,7 @@ const defaultState = {
       title: "Ay sonu için kişisel kontrol listesi hazırla",
       priority: "low",
       date: toISODate(addDays(today, 8)),
+      time: "",
       done: false,
     },
   ],
@@ -82,8 +85,12 @@ const elements = {
   taskTitle: document.querySelector("#taskTitle"),
   taskPriority: document.querySelector("#taskPriority"),
   taskDate: document.querySelector("#taskDate"),
+  taskTime: document.querySelector("#taskTime"),
   monthLabel: document.querySelector("#monthLabel"),
   calendarGrid: document.querySelector("#calendarGrid"),
+  schedulePanel: document.querySelector("#schedulePanel"),
+  scheduleGrid: document.querySelector("#scheduleGrid"),
+  scheduleRange: document.querySelector("#scheduleRange"),
   prevMonth: document.querySelector("#prevMonth"),
   nextMonth: document.querySelector("#nextMonth"),
   reminderForm: document.querySelector("#reminderForm"),
@@ -109,6 +116,10 @@ const viewConfig = {
   monthly: {
     title: "Aylık plan",
     empty: "Bu ay için henüz görev yok.",
+  },
+  schedule: {
+    title: "Zaman planı",
+    empty: "Bu hafta için saatli görev veya anımsatıcı yok.",
   },
 };
 
@@ -136,6 +147,12 @@ const isTaskInView = (task) => {
     return taskDate >= weekStart && taskDate <= weekEnd;
   }
 
+  if (state.view === "schedule") {
+    const weekStart = getWeekStart(today);
+    const weekEnd = addDays(weekStart, 6);
+    return taskDate >= weekStart && taskDate <= weekEnd;
+  }
+
   return taskDate.getMonth() === today.getMonth() && taskDate.getFullYear() === today.getFullYear();
 };
 
@@ -144,6 +161,8 @@ const renderNavigation = () => {
     button.classList.toggle("is-active", button.dataset.view === state.view);
   });
   elements.viewTitle.textContent = viewConfig[state.view].title;
+  elements.taskBoard.hidden = state.view === "schedule";
+  elements.schedulePanel.hidden = state.view !== "schedule";
 };
 
 const renderMetrics = () => {
@@ -179,6 +198,7 @@ const renderTasks = () => {
             <span class="task-meta">
               <span>${priorityLabels[task.priority]}</span>
               <span>${dateFormatter.format(new Date(`${task.date}T12:00:00`))}</span>
+              <span>${task.time || "Saat yok"}</span>
             </span>
           </div>
           <button class="delete-button" data-action="delete-task" data-id="${task.id}" type="button">Sil</button>
@@ -186,6 +206,67 @@ const renderTasks = () => {
       `
     )
     .join("");
+};
+
+const renderSchedule = () => {
+  const weekStart = getWeekStart(today);
+  const days = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+  const hours = Array.from({ length: 16 }, (_, index) => `${String(index + 7).padStart(2, "0")}:00`);
+  const weekdayFormatter = new Intl.DateTimeFormat("tr-TR", { weekday: "short" });
+
+  elements.scheduleRange.textContent = `${dateFormatter.format(weekStart)} - ${dateFormatter.format(addDays(weekStart, 6))}`;
+
+  const header = [
+    `<div class="schedule-corner">Saat</div>`,
+    ...days.map(
+      (day) => `
+        <div class="schedule-day-heading">
+          <strong>${weekdayFormatter.format(day)}</strong>
+          <span>${day.getDate()}</span>
+        </div>
+      `
+    ),
+  ].join("");
+
+  const rows = hours
+    .map((hour) => {
+      const cells = days
+        .map((day) => {
+          const iso = toISODate(day);
+          const taskItems = state.tasks
+            .filter((task) => task.date === iso && (task.time || "").slice(0, 2) === hour.slice(0, 2))
+            .map(
+              (task) => `
+                <button class="schedule-item task ${task.done ? "done" : ""}" data-action="toggle-task" data-id="${task.id}" type="button">
+                  <span>${escapeHtml(task.title)}</span>
+                  <small>${task.time || hour}</small>
+                </button>
+              `
+            );
+          const reminderItems = state.reminders
+            .filter((reminder) => reminder.date === iso && (reminder.time || "").slice(0, 2) === hour.slice(0, 2))
+            .map(
+              (reminder) => `
+                <div class="schedule-item reminder">
+                  <span>${escapeHtml(reminder.title)}</span>
+                  <small>${reminder.time}</small>
+                </div>
+              `
+            );
+          const isToday = iso === toISODate(today);
+          return `
+            <div class="schedule-cell ${isToday ? "is-today" : ""}" data-date="${iso}" data-hour="${hour}">
+              ${[...taskItems, ...reminderItems].join("")}
+            </div>
+          `;
+        })
+        .join("");
+
+      return `<div class="schedule-hour">${hour}</div>${cells}`;
+    })
+    .join("");
+
+  elements.scheduleGrid.innerHTML = header + rows;
 };
 
 const renderCalendar = () => {
@@ -260,6 +341,7 @@ const render = () => {
   renderNavigation();
   renderMetrics();
   renderTasks();
+  renderSchedule();
   renderCalendar();
   renderReminders();
 };
@@ -279,6 +361,7 @@ elements.taskForm.addEventListener("submit", (event) => {
     title: elements.taskTitle.value.trim(),
     priority: elements.taskPriority.value,
     date: elements.taskDate.value,
+    time: elements.taskTime.value,
     done: false,
   });
   elements.taskForm.reset();
@@ -303,6 +386,25 @@ elements.taskBoard.addEventListener("click", (event) => {
 
   saveState();
   render();
+});
+
+elements.scheduleGrid.addEventListener("click", (event) => {
+  const itemButton = event.target.closest("button[data-action='toggle-task']");
+  if (itemButton) {
+    state.tasks = state.tasks.map((task) =>
+      task.id === itemButton.dataset.id ? { ...task, done: !task.done } : task
+    );
+    saveState();
+    render();
+    return;
+  }
+
+  const cell = event.target.closest(".schedule-cell");
+  if (!cell) return;
+  elements.taskDate.value = cell.dataset.date;
+  elements.taskTime.value = cell.dataset.hour;
+  elements.reminderDate.value = cell.dataset.date;
+  elements.reminderTime.value = cell.dataset.hour;
 });
 
 elements.prevMonth.addEventListener("click", () => {
@@ -349,5 +451,6 @@ elements.reminderList.addEventListener("click", (event) => {
 });
 
 elements.taskDate.value = toISODate(today);
+elements.taskTime.value = "";
 elements.reminderDate.value = toISODate(today);
 render();

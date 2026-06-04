@@ -30,6 +30,10 @@
             <span aria-hidden="true">◷</span>
             Aylık
           </button>
+          <button class="nav-item" data-view="schedule" type="button">
+            <span aria-hidden="true">▤</span>
+            Zaman Planı
+          </button>
         </nav>
 
         <div class="sidebar-note">
@@ -77,6 +81,7 @@
                 <button class="segment is-active" data-view="daily" type="button">Gün</button>
                 <button class="segment" data-view="weekly" type="button">Hafta</button>
                 <button class="segment" data-view="monthly" type="button">Ay</button>
+                <button class="segment" data-view="schedule" type="button">Saat</button>
               </div>
             </div>
 
@@ -97,10 +102,25 @@
                 Tarih
                 <input id="taskDate" name="taskDate" type="date" required />
               </label>
+              <label>
+                Saat
+                <input id="taskTime" name="taskTime" type="time" />
+              </label>
               <button class="primary-button" type="submit">Görev ekle</button>
             </form>
 
             <div class="task-board" id="taskBoard" aria-live="polite"></div>
+
+            <section class="schedule-panel" id="schedulePanel" aria-label="Gün ve saat planı">
+              <div class="schedule-toolbar">
+                <div>
+                  <span class="eyebrow">Zaman planı</span>
+                  <h3>Haftalık saat çizelgesi</h3>
+                </div>
+                <span class="schedule-range" id="scheduleRange">Bu hafta</span>
+              </div>
+              <div class="schedule-grid" id="scheduleGrid"></div>
+            </section>
           </div>
 
           <aside class="side-panel">
