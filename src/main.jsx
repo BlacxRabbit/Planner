@@ -493,8 +493,8 @@ function ThemeVisual({ theme }) {
   if (theme === "cyber") {
     return (
       <div className="cover-visual cyber-visual" aria-hidden="true">
-        {Array.from({ length: 7 }, (_, index) => (
-          <span key={index}>0101 access granted 7F3A secure node trace</span>
+        {Array.from({ length: 14 }, (_, index) => (
+          <span key={index}>1010010110100101</span>
         ))}
       </div>
     );
