@@ -493,13 +493,16 @@ function App() {
           </div>
 
           <div className="week-calendar" role="grid" aria-label="Haftalık saatli takvim">
-            <div className="time-corner">Saat</div>
-            {weekDays.map((day) => {
+            <div className="time-corner" style={{ gridColumn: 1, gridRow: 1 }}>
+              Saat
+            </div>
+            {weekDays.map((day, dayIndex) => {
               const iso = toISODate(day);
               return (
                 <button
                   className={`day-head ${iso === state.selectedDate ? "is-selected" : ""}`}
                   key={iso}
+                  style={{ gridColumn: dayIndex + 2, gridRow: 1 }}
                   type="button"
                   onClick={() => selectSlot(iso, draftSlot.time)}
                 >
@@ -509,16 +512,19 @@ function App() {
               );
             })}
 
-            {hours.map((hour) => (
+            {hours.map((hour, hourIndex) => (
               <React.Fragment key={hour}>
-                <div className="time-label">{hour}</div>
-                {weekDays.map((day) => {
+                <div className="time-label" style={{ gridColumn: 1, gridRow: hourIndex + 2 }}>
+                  {hour}
+                </div>
+                {weekDays.map((day, dayIndex) => {
                   const iso = toISODate(day);
 
                   return (
                     <div
                       className={`time-cell ${iso === state.selectedDate ? "is-selected" : ""}`}
                       key={`${iso}-${hour}`}
+                      style={{ gridColumn: dayIndex + 2, gridRow: hourIndex + 2 }}
                       onClick={() => openSlotPopup(iso, hour)}
                     />
                   );
@@ -534,9 +540,7 @@ function App() {
                   gridColumn: item.dayIndex + 2,
                   gridRow: `${item.hourIndex + 2} / span ${item.span}`,
                   "--stack-index": item.stackIndex,
-                  "--stack-offset": `${(item.stackIndex * 100) / item.stackTotal}%`,
-                  "--stack-height":
-                    item.stackTotal > 1 ? `calc(${100 / item.stackTotal}% - 8px)` : "calc(100% - 10px)",
+                  "--stack-offset": `${item.stackIndex * 26}px`,
                   "--stack-total": item.stackTotal,
                 }}
               >

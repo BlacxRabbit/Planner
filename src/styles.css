@@ -1061,7 +1061,7 @@ form,
   position: relative;
   z-index: 2;
   align-self: start;
-  height: var(--stack-height, calc(100% - 10px));
+  height: max(24px, calc(100% - 10px - var(--stack-offset, 0px)));
   margin: 5px 6px;
   top: var(--stack-offset, 0);
   border: 1px solid var(--pill-border);
@@ -1073,7 +1073,7 @@ form,
   font-weight: 900;
   isolation: isolate;
   min-height: 0;
-  max-height: var(--stack-height, calc(100% - 10px));
+  max-height: max(24px, calc(100% - 10px - var(--stack-offset, 0px)));
   overflow: hidden;
   overflow-wrap: anywhere;
 }
