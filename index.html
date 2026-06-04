@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Momentum Planner</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Ana gezinme">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">M</span>
+          <div>
+            <strong>Momentum</strong>
+            <span>Personal Planner</span>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Plan görünümleri">
+          <button class="nav-item is-active" data-view="daily" type="button">
+            <span aria-hidden="true">☀</span>
+            Günlük
+          </button>
+          <button class="nav-item" data-view="weekly" type="button">
+            <span aria-hidden="true">▦</span>
+            Haftalık
+          </button>
+          <button class="nav-item" data-view="monthly" type="button">
+            <span aria-hidden="true">◷</span>
+            Aylık
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <span>Bugünün odağı</span>
+          <strong id="sidebarFocus">Derin çalışma bloğunu koru</strong>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="hero">
+          <div class="hero-copy">
+            <span class="eyebrow" id="todayLabel">Bugün</span>
+            <h1>Planlarını netleştir, gününü hafiflet.</h1>
+            <p>
+              Günlük ritmini, haftalık akışını ve aylık hedeflerini tek sakin
+              alanda toparla.
+            </p>
+          </div>
+          <div class="hero-media" aria-label="Planlama masası görseli"></div>
+        </header>
+
+        <section class="quick-grid" aria-label="Özet">
+          <article class="metric-card">
+            <span>Tamamlanan</span>
+            <strong id="doneCount">0</strong>
+          </article>
+          <article class="metric-card">
+            <span>Aktif görev</span>
+            <strong id="activeCount">0</strong>
+          </article>
+          <article class="metric-card">
+            <span>Anımsatıcı</span>
+            <strong id="reminderCount">0</strong>
+          </article>
+        </section>
+
+        <section class="planner-layout">
+          <div class="plan-column">
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">Plan alanı</span>
+                <h2 id="viewTitle">Günlük plan</h2>
+              </div>
+              <div class="segmented" role="tablist" aria-label="Plan görünümü">
+                <button class="segment is-active" data-view="daily" type="button">Gün</button>
+                <button class="segment" data-view="weekly" type="button">Hafta</button>
+                <button class="segment" data-view="monthly" type="button">Ay</button>
+              </div>
+            </div>
+
+            <form class="task-form" id="taskForm">
+              <label>
+                Görev
+                <input id="taskTitle" name="taskTitle" placeholder="Örn. Sunum taslağını bitir" required />
+              </label>
+              <label>
+                Öncelik
+                <select id="taskPriority" name="taskPriority">
+                  <option value="high">Yüksek</option>
+                  <option value="medium" selected>Orta</option>
+                  <option value="low">Düşük</option>
+                </select>
+              </label>
+              <label>
+                Tarih
+                <input id="taskDate" name="taskDate" type="date" required />
+              </label>
+              <button class="primary-button" type="submit">Görev ekle</button>
+            </form>
+
+            <div class="task-board" id="taskBoard" aria-live="polite"></div>
+          </div>
+
+          <aside class="side-panel">
+            <section class="calendar-panel" aria-label="Takvim">
+              <div class="panel-heading">
+                <div>
+                  <span class="eyebrow">Takvim</span>
+                  <h2 id="monthLabel">Ay</h2>
+                </div>
+                <div class="calendar-controls">
+                  <button class="icon-button" id="prevMonth" type="button" aria-label="Önceki ay">‹</button>
+                  <button class="icon-button" id="nextMonth" type="button" aria-label="Sonraki ay">›</button>
+                </div>
+              </div>
+              <div class="calendar-weekdays" aria-hidden="true">
+                <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
+            </section>
+
+            <section class="reminder-panel" aria-label="Anımsatıcılar">
+              <div class="panel-heading">
+                <div>
+                  <span class="eyebrow">Anımsatıcılar</span>
+                  <h2>Hatırlat</h2>
+                </div>
+              </div>
+              <form class="reminder-form" id="reminderForm">
+                <label>
+                  Başlık
+                  <input id="reminderTitle" placeholder="Örn. Su içme molası" required />
+                </label>
+                <div class="form-row">
+                  <label>
+                    Tarih
+                    <input id="reminderDate" type="date" required />
+                  </label>
+                  <label>
+                    Saat
+                    <input id="reminderTime" type="time" />
+                  </label>
+                </div>
+                <button class="secondary-button" type="submit">Anımsatıcı ekle</button>
+              </form>
+              <div class="reminder-list" id="reminderList" aria-live="polite"></div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
