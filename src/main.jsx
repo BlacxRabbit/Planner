@@ -140,6 +140,8 @@ function App() {
   const [timerMode, setTimerMode] = useState("focus");
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
   const [timerRunning, setTimerRunning] = useState(false);
+  const [quickTitle, setQuickTitle] = useState("");
+  const [quickTarget, setQuickTarget] = useState("today");
   const [draftSlot, setDraftSlot] = useState({
     date: state.selectedDate,
     time: "10:00",
@@ -187,6 +189,44 @@ function App() {
   const completedCount = state.tasks.filter((task) => task.done).length;
   const activeCount = state.tasks.filter((task) => !task.done).length;
   const activeTheme = themes[theme];
+  const todaysTasks = state.tasks
+    .filter((task) => task.date === toISODate(today) && !task.done)
+    .sort((first, second) => (first.time || "99:99").localeCompare(second.time || "99:99"));
+  const generalTasks = state.tasks.filter((task) => task.scope === "general" && !task.done);
+  const weekTasks = state.tasks.filter((task) => {
+    if (!task.date) return false;
+    const taskDate = new Date(`${task.date}T12:00:00`);
+    return taskDate >= weekStart && taskDate <= addDays(weekStart, 6);
+  });
+
+  const addQuickPlan = (event) => {
+    event.preventDefault();
+    const title = quickTitle.trim();
+    if (!title) return;
+
+    const targetFolder =
+      quickTarget === "general"
+        ? state.folders.find((folder) => folder.id === "general-default") || state.folders[0]
+        : state.folders.find((folder) => folder.id === "daily-default") || state.folders[0];
+
+    setState((current) => ({
+      ...current,
+      selectedDate: quickTarget === "today" ? toISODate(today) : current.selectedDate,
+      tasks: [
+        ...current.tasks,
+        {
+          id: crypto.randomUUID(),
+          title,
+          folderId: targetFolder.id,
+          scope: quickTarget === "general" ? "general" : "daily",
+          date: quickTarget === "general" ? "" : toISODate(today),
+          time: "",
+          done: false,
+        },
+      ],
+    }));
+    setQuickTitle("");
+  };
 
   const selectSlot = (date, time) => {
     setState((current) => ({ ...current, selectedDate: date }));
@@ -233,171 +273,104 @@ function App() {
         </nav>
       </header>
 
-      <section className="cover-strip" aria-label="Tema konsept alanı">
-        <div className="cover-text">
-          <span>{activeTheme.eyebrow}</span>
-          <strong>{activeTheme.headline}</strong>
-        </div>
-        <ThemeVisual theme={theme} />
-      </section>
-
       <nav className="section-tabs" aria-label="Uygulama bölümleri">
         <button className={activeSection === "home" ? "is-active" : ""} type="button" onClick={() => setActiveSection("home")}>
-          Ana Sayfa
+          Bugün
         </button>
         <button className={activeSection === "plans" ? "is-active" : ""} type="button" onClick={() => setActiveSection("plans")}>
-          Plan Merkezi
+          Düzenle
         </button>
       </nav>
 
       {activeSection === "home" ? (
-      <section className="planner-grid">
-        <aside className="left-rail">
-          <section className="character-slot" aria-label="Tema ikon alanı">
-            <ThemeMark theme={theme} />
-            <p>{activeTheme.characterTitle}</p>
-            <small>{activeTheme.characterNote}</small>
+        <section className="simple-home">
+          <section className="quick-card" aria-label="Hızlı plan ekleme">
+            <div className="quick-copy">
+              <span>{dateFormatter.format(today)}</span>
+              <h2>Aklına geldiği gibi yaz.</h2>
+            </div>
+            <form className="quick-add-form" onSubmit={addQuickPlan}>
+              <input
+                autoFocus
+                value={quickTitle}
+                onChange={(event) => setQuickTitle(event.target.value)}
+                placeholder="Örn. market listesi, mail at, ödeme yap..."
+              />
+              <div className="quick-actions">
+                <div className="quick-targets" role="radiogroup" aria-label="Hızlı plan hedefi">
+                  <button
+                    className={quickTarget === "today" ? "is-active" : ""}
+                    type="button"
+                    onClick={() => setQuickTarget("today")}
+                  >
+                    Bugüne
+                  </button>
+                  <button
+                    className={quickTarget === "general" ? "is-active" : ""}
+                    type="button"
+                    onClick={() => setQuickTarget("general")}
+                  >
+                    Genel
+                  </button>
+                </div>
+                <button className="submit-button" type="submit">
+                  Ekle
+                </button>
+              </div>
+            </form>
           </section>
 
-          <section className="todo-card">
+          <section className="simple-board">
+            <article className="focus-list-card">
+              <div className="section-title">
+                <span>Bugün</span>
+                <strong>{todaysTasks.length}</strong>
+              </div>
+              <TaskList emptyText="Bugün için hiçbir şey yok." removeTask={removeTask} tasks={todaysTasks} toggleTask={toggleTask} />
+            </article>
+
+            <article className="focus-list-card">
+              <div className="section-title">
+                <span>Genel</span>
+                <strong>{generalTasks.length}</strong>
+              </div>
+              <TaskList emptyText="Genel liste boş." removeTask={removeTask} tasks={generalTasks.slice(0, 6)} toggleTask={toggleTask} />
+            </article>
+
+            <aside className="calm-side">
+              <section className="mini-clock">
+                <span>{String(clock.getHours()).padStart(2, "0")}</span>
+                <span>{String(clock.getMinutes()).padStart(2, "0")}</span>
+              </section>
+              <section className="mini-stats">
+                <strong>{activeCount}</strong>
+                <span>aktif plan</span>
+                <strong>{completedCount}</strong>
+                <span>tamamlanan</span>
+              </section>
+            </aside>
+          </section>
+
+          <section className="mini-week-card">
             <div className="section-title">
-              <span>To-dos</span>
-              <strong>{activeCount}</strong>
+              <span>Bu hafta</span>
+              <strong>{weekTasks.length}</strong>
             </div>
-            <div className="todo-list">
-              {state.tasks.slice(0, 5).map((task) => (
-                <button
-                  className={`todo-item ${task.done ? "is-done" : ""}`}
-                  key={task.id}
-                  type="button"
-                  onClick={() => toggleTask(task.id)}
-                >
-                  <span />
-                  {task.title}
-                </button>
-              ))}
+            <div className="mini-week">
+              {weekDays.map((day) => {
+                const iso = toISODate(day);
+                const count = state.tasks.filter((task) => task.date === iso && !task.done).length;
+                return (
+                  <button className={iso === toISODate(today) ? "is-today" : ""} key={iso} type="button" onClick={() => selectSlot(iso, draftSlot.time)}>
+                    <span>{weekdayFormatter.format(day)}</span>
+                    <strong>{day.getDate()}</strong>
+                    <small>{count}</small>
+                  </button>
+                );
+              })}
             </div>
           </section>
-        </aside>
-
-        <section className="calendar-card">
-          <div className="calendar-head">
-            <div>
-              <span>Calendar</span>
-              <h2>{monthFormatter.format(new Date(`${state.selectedDate}T12:00:00`))}</h2>
-            </div>
-            <p>{dateFormatter.format(new Date(`${state.selectedDate}T12:00:00`))}</p>
-          </div>
-
-          <div className="week-calendar" role="grid" aria-label="Haftalık saatli takvim">
-            <div className="time-corner">Saat</div>
-            {weekDays.map((day) => {
-              const iso = toISODate(day);
-              return (
-                <button
-                  className={`day-head ${iso === state.selectedDate ? "is-selected" : ""}`}
-                  key={iso}
-                  type="button"
-                  onClick={() => selectSlot(iso, draftSlot.time)}
-                >
-                  <span>{weekdayFormatter.format(day)}</span>
-                  <strong>{day.getDate()}</strong>
-                </button>
-              );
-            })}
-
-            {hours.map((hour) => (
-              <React.Fragment key={hour}>
-                <div className="time-label">{hour}</div>
-                {weekDays.map((day) => {
-                  const iso = toISODate(day);
-                  const cellTasks = state.tasks.filter(
-                    (task) => task.date === iso && (task.time || "").slice(0, 2) === hour.slice(0, 2)
-                  );
-                  const cellReminders = state.reminders.filter(
-                    (reminder) => reminder.date === iso && (reminder.time || "").slice(0, 2) === hour.slice(0, 2)
-                  );
-
-                  return (
-                    <button
-                      className={`time-cell ${iso === state.selectedDate ? "is-selected" : ""}`}
-                      key={`${iso}-${hour}`}
-                      type="button"
-                      onClick={() => selectSlot(iso, hour)}
-                    >
-                      {[...cellTasks, ...cellReminders].map((item) => (
-                        <span className={`event-pill ${item.done ? "is-done" : ""}`} key={item.id}>
-                          {item.title}
-                        </span>
-                      ))}
-                    </button>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </div>
         </section>
-
-        <aside className="right-rail">
-          <section className="clock-card">
-            <span>{clock.getHours() >= 12 ? "PM" : "AM"}</span>
-            <strong>{String(clock.getHours()).padStart(2, "0")}</strong>
-            <strong>{String(clock.getMinutes()).padStart(2, "0")}</strong>
-          </section>
-
-          <section className="timer-card">
-            <div className="section-title">
-              <span>Sayaç</span>
-              <strong>{timerMode === "focus" ? "Focus" : "Break"}</strong>
-            </div>
-            <div className="timer-face">
-              {String(Math.floor(timerSeconds / 60)).padStart(2, "0")}:
-              {String(timerSeconds % 60).padStart(2, "0")}
-            </div>
-            <div className="timer-presets">
-              <button type="button" onClick={() => setTimerPreset("focus", 25 * 60)}>
-                25
-              </button>
-              <button type="button" onClick={() => setTimerPreset("break", 5 * 60)}>
-                5
-              </button>
-              <button type="button" onClick={() => setTimerPreset("break", 15 * 60)}>
-                15
-              </button>
-            </div>
-            <button className="timer-toggle" type="button" onClick={() => setTimerRunning((current) => !current)}>
-              {timerRunning ? "Duraklat" : "Başlat"}
-            </button>
-          </section>
-
-          <section className="day-list-card">
-            <div className="section-title">
-              <span>Seçili gün</span>
-              <strong>{selectedDayItems.length}</strong>
-            </div>
-            <div className="day-list">
-              {selectedDayItems.length === 0 ? (
-                <p>Bu gün henüz sakin.</p>
-              ) : (
-                selectedDayItems.map((item) => (
-                  <article className="day-item" key={`${item.kind}-${item.id}`}>
-                    <div>
-                      <span>{item.time || "Saat yok"}</span>
-                      <strong>{item.title}</strong>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => (item.kind === "task" ? removeTask(item.id) : removeReminder(item.id))}
-                    >
-                      Sil
-                    </button>
-                  </article>
-                ))
-              )}
-            </div>
-          </section>
-        </aside>
-      </section>
       ) : (
         <PlanWorkspace
           draftSlot={draftSlot}
@@ -409,6 +382,29 @@ function App() {
         />
       )}
     </main>
+  );
+}
+
+function TaskList({ emptyText, removeTask, tasks, toggleTask }) {
+  if (!tasks.length) {
+    return <p className="empty-note">{emptyText}</p>;
+  }
+
+  return (
+    <div className="simple-task-list">
+      {tasks.map((task) => (
+        <article className={`simple-task ${task.done ? "is-done" : ""}`} key={task.id}>
+          <button className="task-check" type="button" onClick={() => toggleTask(task.id)} aria-label="Tamamla" />
+          <button className="task-body" type="button" onClick={() => toggleTask(task.id)}>
+            <strong>{task.title}</strong>
+            <span>{[task.date || "Tarihsiz", task.time || ""].filter(Boolean).join(" · ")}</span>
+          </button>
+          <button className="task-remove" type="button" onClick={() => removeTask(task.id)}>
+            Sil
+          </button>
+        </article>
+      ))}
+    </div>
   );
 }
 
