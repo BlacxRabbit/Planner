@@ -20,6 +20,36 @@ const weekdayFormatter = new Intl.DateTimeFormat("tr-TR", {
   weekday: "short",
 });
 
+const themes = {
+  kawaii: {
+    name: "Tatlı Mod",
+    brand: "Kawaii Life",
+    title: "Soft Planner",
+    eyebrow: "Growing, glowing, and organizing",
+    headline: "Planlarını tatlı ama düzenli tut.",
+    characterTitle: "Karakter alanı",
+    characterNote: "İleride eklenecek kız karakter versiyonu için boş bırakıldı.",
+  },
+  engineer: {
+    name: "Engineer",
+    brand: "Engineer Desk",
+    title: "Build Planner",
+    eyebrow: "Design, test, ship",
+    headline: "Planlarını sistemli ve ölçülebilir tut.",
+    characterTitle: "Çalışma istasyonu",
+    characterNote: "Pati alanı bu modda sade bilgisayar ikonuna dönüşür.",
+  },
+  cyber: {
+    name: "Cyber",
+    brand: "Cyber Flow",
+    title: "Secure Planner",
+    eyebrow: "Monitor, harden, respond",
+    headline: "Planlarını sakin, güvenli ve izlenebilir tut.",
+    characterTitle: "Operasyon alanı",
+    characterNote: "Siber güvenlik ikonları ileride verilecek assetlerle değiştirilebilir.",
+  },
+};
+
 const toISODate = (date) => {
   const copy = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return copy.toISOString().slice(0, 10);
@@ -80,6 +110,7 @@ const loadState = () => {
 
 function App() {
   const [state, setState] = useState(loadState);
+  const [theme, setTheme] = useState("kawaii");
   const [clock, setClock] = useState(new Date());
   const [timerMode, setTimerMode] = useState("focus");
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
@@ -130,6 +161,7 @@ function App() {
 
   const completedCount = state.tasks.filter((task) => task.done).length;
   const activeCount = state.tasks.filter((task) => !task.done).length;
+  const activeTheme = themes[theme];
 
   const updateForm = (key, value) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -187,40 +219,38 @@ function App() {
   };
 
   return (
-    <main className="planner-page">
+    <main className={`planner-page theme-${theme}`}>
       <header className="top-bar">
         <div className="brand">
-          <span className="brand-icon" aria-hidden="true" />
+          <span className={`brand-icon brand-icon-${theme}`} aria-hidden="true" />
           <div>
-            <p>Kawaii Life</p>
-            <h1>Soft Planner</h1>
+            <p>{activeTheme.brand}</p>
+            <h1>{activeTheme.title}</h1>
           </div>
         </div>
-        <nav className="top-actions" aria-label="Plan seçenekleri">
-          <button type="button">Bugün</button>
-          <button type="button">Hafta</button>
-          <button type="button">Ay</button>
+        <nav className="top-actions" aria-label="Tema modları">
+          {Object.entries(themes).map(([key, item]) => (
+            <button className={theme === key ? "is-active" : ""} key={key} type="button" onClick={() => setTheme(key)}>
+              {item.name}
+            </button>
+          ))}
         </nav>
       </header>
 
-      <section className="cover-strip" aria-label="Pembe konsept alanı">
+      <section className="cover-strip" aria-label="Tema konsept alanı">
         <div className="cover-text">
-          <span>Growing, glowing, and organizing</span>
-          <strong>Planlarını tatlı ama düzenli tut.</strong>
+          <span>{activeTheme.eyebrow}</span>
+          <strong>{activeTheme.headline}</strong>
         </div>
+        <ThemeVisual theme={theme} />
       </section>
 
       <section className="planner-grid">
         <aside className="left-rail">
-          <section className="character-slot" aria-label="Karakter alanı">
-            <div className="paw-mark" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-            <p>Karakter alanı</p>
-            <small>İleride eklenecek kız karakter versiyonu için boş bırakıldı.</small>
+          <section className="character-slot" aria-label="Tema ikon alanı">
+            <ThemeMark theme={theme} />
+            <p>{activeTheme.characterTitle}</p>
+            <small>{activeTheme.characterNote}</small>
           </section>
 
           <section className="todo-card">
@@ -409,6 +439,73 @@ function App() {
         </aside>
       </section>
     </main>
+  );
+}
+
+function ThemeMark({ theme }) {
+  if (theme === "engineer") {
+    return (
+      <div className="computer-mark" aria-hidden="true">
+        <span />
+      </div>
+    );
+  }
+
+  if (theme === "cyber") {
+    return (
+      <div className="terminal-mark" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+    );
+  }
+
+  return (
+    <div className="paw-mark" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
+function ThemeVisual({ theme }) {
+  if (theme === "engineer") {
+    return (
+      <div className="cover-visual engineer-visual" aria-hidden="true">
+        <div className="monitor-frame">
+          <span />
+          <span />
+          <span />
+          <strong>build.log</strong>
+        </div>
+        <div className="blueprint-grid">
+          <i />
+          <i />
+          <i />
+        </div>
+      </div>
+    );
+  }
+
+  if (theme === "cyber") {
+    return (
+      <div className="cover-visual cyber-visual" aria-hidden="true">
+        {Array.from({ length: 7 }, (_, index) => (
+          <span key={index}>0101 access granted 7F3A secure node trace</span>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="cover-visual kawaii-visual" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </div>
   );
 }
 
