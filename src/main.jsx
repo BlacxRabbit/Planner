@@ -370,6 +370,64 @@ function App() {
               })}
             </div>
           </section>
+
+          <section className="calendar-card calm-calendar">
+            <div className="calendar-head">
+              <div>
+                <span>Saatli takvim</span>
+                <h2>{monthFormatter.format(new Date(`${state.selectedDate}T12:00:00`))}</h2>
+              </div>
+              <p>{dateFormatter.format(new Date(`${state.selectedDate}T12:00:00`))}</p>
+            </div>
+
+            <div className="week-calendar" role="grid" aria-label="Haftalık saatli takvim">
+              <div className="time-corner">Saat</div>
+              {weekDays.map((day) => {
+                const iso = toISODate(day);
+                return (
+                  <button
+                    className={`day-head ${iso === state.selectedDate ? "is-selected" : ""}`}
+                    key={iso}
+                    type="button"
+                    onClick={() => selectSlot(iso, draftSlot.time)}
+                  >
+                    <span>{weekdayFormatter.format(day)}</span>
+                    <strong>{day.getDate()}</strong>
+                  </button>
+                );
+              })}
+
+              {hours.map((hour) => (
+                <React.Fragment key={hour}>
+                  <div className="time-label">{hour}</div>
+                  {weekDays.map((day) => {
+                    const iso = toISODate(day);
+                    const cellTasks = state.tasks.filter(
+                      (task) => task.date === iso && (task.time || "").slice(0, 2) === hour.slice(0, 2)
+                    );
+                    const cellReminders = state.reminders.filter(
+                      (reminder) => reminder.date === iso && (reminder.time || "").slice(0, 2) === hour.slice(0, 2)
+                    );
+
+                    return (
+                      <button
+                        className={`time-cell ${iso === state.selectedDate ? "is-selected" : ""}`}
+                        key={`${iso}-${hour}`}
+                        type="button"
+                        onClick={() => selectSlot(iso, hour)}
+                      >
+                        {[...cellTasks, ...cellReminders].map((item) => (
+                          <span className={`event-pill ${item.done ? "is-done" : ""}`} key={item.id}>
+                            {item.title}
+                          </span>
+                        ))}
+                      </button>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
+            </div>
+          </section>
         </section>
       ) : (
         <PlanWorkspace

@@ -533,6 +533,19 @@ button {
   font-size: 1.5rem;
 }
 
+.calm-calendar {
+  padding: 18px;
+}
+
+.calm-calendar .week-calendar {
+  max-height: 520px;
+}
+
+.calm-calendar .time-label,
+.calm-calendar .time-cell {
+  min-height: 64px;
+}
+
 .cover-strip {
   display: grid;
   grid-template-columns: minmax(260px, 0.88fr) minmax(280px, 1fr);
