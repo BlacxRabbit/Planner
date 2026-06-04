@@ -69,6 +69,12 @@ const getWeekStart = (date) => {
   return copy;
 };
 
+const addHoursToTime = (time, hoursToAdd) => {
+  const [hour, minute] = time.split(":").map(Number);
+  const nextHour = Math.min(hour + hoursToAdd, 23);
+  return `${String(nextHour).padStart(2, "0")}:${String(minute || 0).padStart(2, "0")}`;
+};
+
 const defaultState = {
   selectedDate: toISODate(today),
   folders: [
@@ -144,6 +150,12 @@ function App() {
   const [quickDay, setQuickDay] = useState("today");
   const [slotDraft, setSlotDraft] = useState(null);
   const [slotTitle, setSlotTitle] = useState("");
+  const [slotNote, setSlotNote] = useState("");
+  const [slotShowNote, setSlotShowNote] = useState(false);
+  const [slotEndTime, setSlotEndTime] = useState("11:00");
+  const [detailTaskId, setDetailTaskId] = useState(null);
+  const [detailEditing, setDetailEditing] = useState(false);
+  const [detailNote, setDetailNote] = useState("");
   const [draftSlot, setDraftSlot] = useState({
     date: state.selectedDate,
     time: "10:00",
@@ -191,6 +203,7 @@ function App() {
   const completedCount = state.tasks.filter((task) => task.done).length;
   const activeCount = state.tasks.filter((task) => !task.done).length;
   const activeTheme = themes[theme];
+  const detailTask = state.tasks.find((task) => task.id === detailTaskId);
   const todayIso = toISODate(today);
   const tomorrowIso = toISODate(addDays(today, 1));
   const dailyTodoTasks = state.tasks
@@ -228,6 +241,9 @@ function App() {
     selectSlot(date, time);
     setSlotDraft({ date, time });
     setSlotTitle("");
+    setSlotNote("");
+    setSlotShowNote(false);
+    setSlotEndTime(addHoursToTime(time, 1));
   };
 
   const addSlotPlan = (event) => {
@@ -249,6 +265,8 @@ function App() {
           scope: "daily",
           date: slotDraft.date,
           time: slotDraft.time,
+          endTime: slotEndTime,
+          note: slotNote.trim(),
           done: false,
         },
       ],
@@ -271,6 +289,21 @@ function App() {
 
   const removeTask = (id) => {
     setState((current) => ({ ...current, tasks: current.tasks.filter((task) => task.id !== id) }));
+  };
+
+  const openTaskDetail = (task) => {
+    setDetailTaskId(task.id);
+    setDetailEditing(false);
+    setDetailNote(task.note || "");
+  };
+
+  const saveTaskNote = () => {
+    if (!detailTask) return;
+    setState((current) => ({
+      ...current,
+      tasks: current.tasks.map((task) => (task.id === detailTask.id ? { ...task, note: detailNote.trim() } : task)),
+    }));
+    setDetailEditing(false);
   };
 
   const removeReminder = (id) => {
@@ -411,18 +444,41 @@ function App() {
                   );
 
                   return (
-                    <button
+                    <div
                       className={`time-cell ${iso === state.selectedDate ? "is-selected" : ""}`}
                       key={`${iso}-${hour}`}
-                      type="button"
                       onClick={() => openSlotPopup(iso, hour)}
                     >
                       {[...cellTasks, ...cellReminders].map((item) => (
-                        <span className={`event-pill ${item.done ? "is-done" : ""}`} key={item.id}>
-                          {item.title}
-                        </span>
+                        <article
+                          className={`event-pill ${"folderId" in item ? "" : "no-check"} ${item.done ? "is-done" : ""}`}
+                          key={item.id}
+                        >
+                          {"folderId" in item ? (
+                            <button
+                              className="event-check"
+                              type="button"
+                              aria-label="Görevi tamamla"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                toggleTask(item.id);
+                              }}
+                            />
+                          ) : null}
+                          <button
+                            className="event-title"
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if ("folderId" in item) openTaskDetail(item);
+                            }}
+                          >
+                            <span>{item.title}</span>
+                            {"endTime" in item && item.endTime ? <small>{item.time} - {item.endTime}</small> : null}
+                          </button>
+                        </article>
                       ))}
-                    </button>
+                    </div>
                   );
                 })}
               </React.Fragment>
@@ -514,6 +570,30 @@ function App() {
               onChange={(event) => setSlotTitle(event.target.value)}
               placeholder="Bu saate ne ekleyelim?"
             />
+            <div className="slot-time-row">
+              <label>
+                Başlangıç
+                <input value={slotDraft.time} readOnly type="time" />
+              </label>
+              <label>
+                Bitiş
+                <input value={slotEndTime} onChange={(event) => setSlotEndTime(event.target.value)} type="time" />
+              </label>
+            </div>
+            {!slotShowNote ? (
+              <button className="detail-toggle" type="button" onClick={() => setSlotShowNote(true)}>
+                Detay ekle
+              </button>
+            ) : (
+              <label>
+                Detay
+                <textarea
+                  value={slotNote}
+                  onChange={(event) => setSlotNote(event.target.value)}
+                  placeholder="Not, bağlantı, hazırlık, aklına gelen detay..."
+                />
+              </label>
+            )}
             <div className="slot-popover-actions">
               <button className="secondary-action" type="button" onClick={() => setSlotDraft(null)}>
                 Vazgeç
@@ -523,6 +603,51 @@ function App() {
               </button>
             </div>
           </form>
+        </div>
+      ) : null}
+      {detailTask ? (
+        <div className="slot-popover-backdrop" role="presentation" onClick={() => setDetailTaskId(null)}>
+          <section className="slot-popover task-detail-popover" onClick={(event) => event.stopPropagation()}>
+            <div className="detail-head">
+              <div>
+                <span>Plan detayı</span>
+                <strong>{detailTask.title}</strong>
+              </div>
+              <button type="button" onClick={() => setDetailEditing((current) => !current)}>
+                Düzenle
+              </button>
+            </div>
+            <p>
+              {[detailTask.date || "Tarih yok", detailTask.time || "Saat yok", detailTask.endTime ? `Bitiş ${detailTask.endTime}` : ""]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+            {detailEditing ? (
+              <>
+                <label>
+                  Detay notu
+                  <textarea
+                    autoFocus
+                    value={detailNote}
+                    onChange={(event) => setDetailNote(event.target.value)}
+                    placeholder="Bu planla ilgili detayları düzenle..."
+                  />
+                </label>
+                <div className="slot-popover-actions">
+                  <button className="secondary-action" type="button" onClick={() => setDetailEditing(false)}>
+                    Vazgeç
+                  </button>
+                  <button className="submit-button" type="button" onClick={saveTaskNote}>
+                    Kaydet
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="detail-note">
+                {detailTask.note || "Bu plan için detay notu yok."}
+              </div>
+            )}
+          </section>
         </div>
       ) : null}
     </main>
