@@ -71,10 +71,22 @@ const getWeekStart = (date) => {
 
 const defaultState = {
   selectedDate: toISODate(today),
+  folders: [
+    {
+      id: "daily-default",
+      name: "Günlük yapılacaklar",
+    },
+    {
+      id: "general-default",
+      name: "Genel planlar",
+    },
+  ],
   tasks: [
     {
       id: crypto.randomUUID(),
       title: "Haftalık planı pembe ajandaya işle",
+      folderId: "daily-default",
+      scope: "daily",
       date: toISODate(today),
       time: "09:00",
       done: false,
@@ -82,6 +94,8 @@ const defaultState = {
     {
       id: crypto.randomUUID(),
       title: "Kısa mola ve su hatırlatması",
+      folderId: "daily-default",
+      scope: "daily",
       date: toISODate(today),
       time: "15:00",
       done: false,
@@ -102,7 +116,17 @@ const loadState = () => {
   if (!saved) return defaultState;
 
   try {
-    return { ...defaultState, ...JSON.parse(saved) };
+    const parsed = { ...defaultState, ...JSON.parse(saved) };
+    const fallbackFolderId = parsed.folders?.[0]?.id || defaultState.folders[0].id;
+    return {
+      ...parsed,
+      folders: parsed.folders?.length ? parsed.folders : defaultState.folders,
+      tasks: parsed.tasks.map((task) => ({
+        ...task,
+        folderId: task.folderId || fallbackFolderId,
+        scope: task.scope || (task.date ? "daily" : "general"),
+      })),
+    };
   } catch {
     return defaultState;
   }
@@ -111,15 +135,14 @@ const loadState = () => {
 function App() {
   const [state, setState] = useState(loadState);
   const [theme, setTheme] = useState("kawaii");
+  const [activeSection, setActiveSection] = useState("home");
   const [clock, setClock] = useState(new Date());
   const [timerMode, setTimerMode] = useState("focus");
   const [timerSeconds, setTimerSeconds] = useState(25 * 60);
   const [timerRunning, setTimerRunning] = useState(false);
-  const [form, setForm] = useState({
-    title: "",
+  const [draftSlot, setDraftSlot] = useState({
     date: state.selectedDate,
     time: "10:00",
-    type: "task",
   });
 
   useEffect(() => {
@@ -156,45 +179,18 @@ function App() {
     const reminderItems = state.reminders
       .filter((reminder) => reminder.date === state.selectedDate)
       .map((reminder) => ({ ...reminder, kind: "reminder" }));
-    return [...taskItems, ...reminderItems].sort((first, second) => first.time.localeCompare(second.time));
+    return [...taskItems, ...reminderItems].sort((first, second) =>
+      (first.time || "99:99").localeCompare(second.time || "99:99")
+    );
   }, [state]);
 
   const completedCount = state.tasks.filter((task) => task.done).length;
   const activeCount = state.tasks.filter((task) => !task.done).length;
   const activeTheme = themes[theme];
 
-  const updateForm = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
-  };
-
-  const addItem = (event) => {
-    event.preventDefault();
-    const nextItem = {
-      id: crypto.randomUUID(),
-      title: form.title.trim(),
-      date: form.date,
-      time: form.time || "09:00",
-    };
-
-    if (!nextItem.title) return;
-
-    setState((current) => {
-      if (form.type === "reminder") {
-        return { ...current, reminders: [...current.reminders, nextItem] };
-      }
-
-      return {
-        ...current,
-        tasks: [...current.tasks, { ...nextItem, done: false }],
-      };
-    });
-
-    setForm((current) => ({ ...current, title: "" }));
-  };
-
   const selectSlot = (date, time) => {
     setState((current) => ({ ...current, selectedDate: date }));
-    setForm((current) => ({ ...current, date, time }));
+    setDraftSlot({ date, time });
   };
 
   const toggleTask = (id) => {
@@ -245,6 +241,16 @@ function App() {
         <ThemeVisual theme={theme} />
       </section>
 
+      <nav className="section-tabs" aria-label="Uygulama bölümleri">
+        <button className={activeSection === "home" ? "is-active" : ""} type="button" onClick={() => setActiveSection("home")}>
+          Ana Sayfa
+        </button>
+        <button className={activeSection === "plans" ? "is-active" : ""} type="button" onClick={() => setActiveSection("plans")}>
+          Plan Merkezi
+        </button>
+      </nav>
+
+      {activeSection === "home" ? (
       <section className="planner-grid">
         <aside className="left-rail">
           <section className="character-slot" aria-label="Tema ikon alanı">
@@ -292,7 +298,7 @@ function App() {
                   className={`day-head ${iso === state.selectedDate ? "is-selected" : ""}`}
                   key={iso}
                   type="button"
-                  onClick={() => selectSlot(iso, form.time)}
+                  onClick={() => selectSlot(iso, draftSlot.time)}
                 >
                   <span>{weekdayFormatter.format(day)}</span>
                   <strong>{day.getDate()}</strong>
@@ -306,10 +312,10 @@ function App() {
                 {weekDays.map((day) => {
                   const iso = toISODate(day);
                   const cellTasks = state.tasks.filter(
-                    (task) => task.date === iso && task.time.slice(0, 2) === hour.slice(0, 2)
+                    (task) => task.date === iso && (task.time || "").slice(0, 2) === hour.slice(0, 2)
                   );
                   const cellReminders = state.reminders.filter(
-                    (reminder) => reminder.date === iso && reminder.time.slice(0, 2) === hour.slice(0, 2)
+                    (reminder) => reminder.date === iso && (reminder.time || "").slice(0, 2) === hour.slice(0, 2)
                   );
 
                   return (
@@ -364,52 +370,6 @@ function App() {
             </button>
           </section>
 
-          <section className="add-card">
-            <div className="section-title">
-              <span>Plan ekle</span>
-              <strong>{completedCount} bitti</strong>
-            </div>
-            <form onSubmit={addItem}>
-              <label>
-                Başlık
-                <input
-                  value={form.title}
-                  onChange={(event) => updateForm("title", event.target.value)}
-                  placeholder="Örn. Notları düzenle"
-                />
-              </label>
-              <div className="form-row">
-                <label>
-                  Tarih
-                  <input value={form.date} onChange={(event) => updateForm("date", event.target.value)} type="date" />
-                </label>
-                <label>
-                  Saat
-                  <input value={form.time} onChange={(event) => updateForm("time", event.target.value)} type="time" />
-                </label>
-              </div>
-              <div className="type-toggle" role="radiogroup" aria-label="Plan tipi">
-                <button
-                  className={form.type === "task" ? "is-active" : ""}
-                  type="button"
-                  onClick={() => updateForm("type", "task")}
-                >
-                  Görev
-                </button>
-                <button
-                  className={form.type === "reminder" ? "is-active" : ""}
-                  type="button"
-                  onClick={() => updateForm("type", "reminder")}
-                >
-                  Anımsatıcı
-                </button>
-              </div>
-              <button className="submit-button" type="submit">
-                Ekle
-              </button>
-            </form>
-          </section>
-
           <section className="day-list-card">
             <div className="section-title">
               <span>Seçili gün</span>
@@ -422,7 +382,7 @@ function App() {
                 selectedDayItems.map((item) => (
                   <article className="day-item" key={`${item.kind}-${item.id}`}>
                     <div>
-                      <span>{item.time}</span>
+                      <span>{item.time || "Saat yok"}</span>
                       <strong>{item.title}</strong>
                     </div>
                     <button
@@ -438,6 +398,16 @@ function App() {
           </section>
         </aside>
       </section>
+      ) : (
+        <PlanWorkspace
+          draftSlot={draftSlot}
+          setActiveSection={setActiveSection}
+          setState={setState}
+          state={state}
+          toggleTask={toggleTask}
+          removeTask={removeTask}
+        />
+      )}
     </main>
   );
 }
@@ -468,6 +438,273 @@ function ThemeMark({ theme }) {
       <span />
       <span />
     </div>
+  );
+}
+
+function PlanWorkspace({ draftSlot, removeTask, setActiveSection, setState, state, toggleTask }) {
+  const [selectedFolderId, setSelectedFolderId] = useState(state.folders[0]?.id || "");
+  const [folderName, setFolderName] = useState("");
+  const [planForm, setPlanForm] = useState({
+    title: "",
+    scope: "daily",
+    useDate: true,
+    date: draftSlot.date,
+    useTime: true,
+    time: draftSlot.time,
+    routine: false,
+  });
+
+  useEffect(() => {
+    setPlanForm((current) => ({
+      ...current,
+      date: draftSlot.date,
+      time: draftSlot.time,
+    }));
+  }, [draftSlot]);
+
+  useEffect(() => {
+    if (!state.folders.some((folder) => folder.id === selectedFolderId)) {
+      setSelectedFolderId(state.folders[0]?.id || "");
+    }
+  }, [selectedFolderId, state.folders]);
+
+  const selectedFolder = state.folders.find((folder) => folder.id === selectedFolderId);
+  const folderPlans = state.tasks
+    .filter((task) => task.folderId === selectedFolderId)
+    .sort((first, second) => {
+      const firstDate = first.date || "9999-12-31";
+      const secondDate = second.date || "9999-12-31";
+      if (firstDate !== secondDate) return firstDate.localeCompare(secondDate);
+      return (first.time || "99:99").localeCompare(second.time || "99:99");
+    });
+
+  const updatePlanForm = (key, value) => {
+    setPlanForm((current) => {
+      const next = { ...current, [key]: value };
+      if (key === "scope" && value === "general") {
+        next.useDate = false;
+        next.routine = false;
+      }
+      return next;
+    });
+  };
+
+  const createFolder = (event) => {
+    event.preventDefault();
+    const name = folderName.trim();
+    if (!name) return;
+
+    const folder = {
+      id: crypto.randomUUID(),
+      name,
+    };
+
+    setState((current) => ({
+      ...current,
+      folders: [...current.folders, folder],
+    }));
+    setSelectedFolderId(folder.id);
+    setFolderName("");
+  };
+
+  const addPlan = (event) => {
+    event.preventDefault();
+    const title = planForm.title.trim();
+    if (!title || !selectedFolderId) return;
+
+    const baseDate = planForm.useDate ? planForm.date : "";
+    const baseTime = planForm.useTime ? planForm.time : "";
+    const shouldRepeat = planForm.routine && planForm.scope === "daily";
+    const repeatStart = baseDate || toISODate(today);
+    const repeatCount = shouldRepeat ? 30 : 1;
+
+    const plans = Array.from({ length: repeatCount }, (_, index) => {
+      const date = shouldRepeat ? toISODate(addDays(new Date(`${repeatStart}T12:00:00`), index)) : baseDate;
+      return {
+        id: crypto.randomUUID(),
+        title,
+        folderId: selectedFolderId,
+        scope: planForm.scope,
+        date,
+        time: baseTime,
+        done: false,
+        routine: shouldRepeat,
+      };
+    });
+
+    setState((current) => ({
+      ...current,
+      selectedDate: plans[0].date || current.selectedDate,
+      tasks: [...current.tasks, ...plans],
+    }));
+
+    setPlanForm((current) => ({
+      ...current,
+      title: "",
+    }));
+  };
+
+  const deleteFolder = (folderId) => {
+    if (state.folders.length <= 1) return;
+    setState((current) => ({
+      ...current,
+      folders: current.folders.filter((folder) => folder.id !== folderId),
+      tasks: current.tasks.filter((task) => task.folderId !== folderId),
+    }));
+  };
+
+  return (
+    <section className="plan-workspace">
+      <aside className="folder-panel">
+        <div className="section-title">
+          <span>Klasörler</span>
+          <strong>{state.folders.length}</strong>
+        </div>
+        <form className="folder-form" onSubmit={createFolder}>
+          <label>
+            Yeni klasör
+            <input
+              value={folderName}
+              onChange={(event) => setFolderName(event.target.value)}
+              placeholder="Örn. Günlük yapılacaklar"
+            />
+          </label>
+          <button className="submit-button" type="submit">
+            Klasör aç
+          </button>
+        </form>
+        <div className="folder-list">
+          {state.folders.map((folder) => (
+            <article className={`folder-item ${folder.id === selectedFolderId ? "is-active" : ""}`} key={folder.id}>
+              <button type="button" onClick={() => setSelectedFolderId(folder.id)}>
+                <span>{folder.name}</span>
+                <small>{state.tasks.filter((task) => task.folderId === folder.id).length} plan</small>
+              </button>
+              {state.folders.length > 1 ? (
+                <button className="folder-delete" type="button" onClick={() => deleteFolder(folder.id)}>
+                  Sil
+                </button>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      </aside>
+
+      <section className="plan-editor">
+        <div className="section-title">
+          <span>Plan oluştur</span>
+          <strong>{selectedFolder?.name || "Klasör seç"}</strong>
+        </div>
+        <form className="plan-builder-form" onSubmit={addPlan}>
+          <label className="wide-field">
+            Plan başlığı
+            <input
+              value={planForm.title}
+              onChange={(event) => updatePlanForm("title", event.target.value)}
+              placeholder="Örn. Sabah notlarını yaz"
+            />
+          </label>
+
+          <div className="type-toggle" role="radiogroup" aria-label="Plan kapsamı">
+            <button
+              className={planForm.scope === "daily" ? "is-active" : ""}
+              type="button"
+              onClick={() => updatePlanForm("scope", "daily")}
+            >
+              Günlük plan
+            </button>
+            <button
+              className={planForm.scope === "general" ? "is-active" : ""}
+              type="button"
+              onClick={() => updatePlanForm("scope", "general")}
+            >
+              Genel plan
+            </button>
+          </div>
+
+          <div className="option-grid">
+            <label className="check-option">
+              <input
+                checked={planForm.useDate}
+                disabled={planForm.scope === "general"}
+                onChange={(event) => updatePlanForm("useDate", event.target.checked)}
+                type="checkbox"
+              />
+              Tarih seç
+            </label>
+            {planForm.useDate ? (
+              <label>
+                Tarih
+                <input value={planForm.date} onChange={(event) => updatePlanForm("date", event.target.value)} type="date" />
+              </label>
+            ) : null}
+
+            <label className="check-option">
+              <input
+                checked={planForm.useTime}
+                onChange={(event) => updatePlanForm("useTime", event.target.checked)}
+                type="checkbox"
+              />
+              Saat seç
+            </label>
+            {planForm.useTime ? (
+              <label>
+                Saat
+                <input value={planForm.time} onChange={(event) => updatePlanForm("time", event.target.value)} type="time" />
+              </label>
+            ) : null}
+          </div>
+
+          <label className="check-option routine-option">
+            <input
+              checked={planForm.routine}
+              disabled={planForm.scope === "general"}
+              onChange={(event) => updatePlanForm("routine", event.target.checked)}
+              type="checkbox"
+            />
+            Rutin olarak 1 ay boyunca her güne ekle
+          </label>
+
+          <div className="plan-actions">
+            <button className="secondary-action" type="button" onClick={() => setActiveSection("home")}>
+              Takvime dön
+            </button>
+            <button className="submit-button" type="submit">
+              Planı ekle
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <aside className="folder-preview">
+        <div className="section-title">
+          <span>Klasör içeriği</span>
+          <strong>{folderPlans.length}</strong>
+        </div>
+        <div className="folder-plan-list">
+          {folderPlans.length === 0 ? (
+            <p>Bu klasör henüz boş.</p>
+          ) : (
+            folderPlans.map((plan) => (
+              <article className={`folder-plan ${plan.done ? "is-done" : ""}`} key={plan.id}>
+                <button type="button" onClick={() => toggleTask(plan.id)}>
+                  <span>{plan.scope === "daily" ? "Günlük" : "Genel"}</span>
+                  <strong>{plan.title}</strong>
+                  <small>
+                    {[plan.date || "Tarih yok", plan.time || "Saat yok", plan.routine ? "Rutin" : ""]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </small>
+                </button>
+                <button className="folder-delete" type="button" onClick={() => removeTask(plan.id)}>
+                  Sil
+                </button>
+              </article>
+            ))
+          )}
+        </div>
+      </aside>
+    </section>
   );
 }
 

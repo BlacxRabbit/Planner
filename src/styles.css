@@ -63,7 +63,9 @@ button {
 
 .top-bar,
 .cover-strip,
-.planner-grid {
+.planner-grid,
+.section-tabs,
+.plan-workspace {
   max-width: 1480px;
   margin-left: auto;
   margin-right: auto;
@@ -269,6 +271,27 @@ button {
 }
 
 .top-actions button.is-active {
+  background: var(--pink-400);
+  color: #fff;
+}
+
+.section-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.section-tabs button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--rose);
+  padding: 10px 16px;
+  font-weight: 900;
+}
+
+.section-tabs button.is-active {
   background: var(--pink-400);
   color: #fff;
 }
@@ -522,6 +545,13 @@ button {
   align-items: start;
 }
 
+.plan-workspace {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
 .left-rail,
 .right-rail {
   display: grid;
@@ -530,7 +560,14 @@ button {
 
 .left-rail > section,
 .right-rail > section,
-.calendar-card {
+.calendar-card,
+.folder-panel,
+.plan-editor,
+.folder-preview {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
   padding: 18px;
 }
 
@@ -693,9 +730,149 @@ button {
 
 .todo-list,
 .day-list,
-form {
+form,
+.folder-list,
+.folder-plan-list {
   display: grid;
   gap: 10px;
+}
+
+.folder-form {
+  margin-bottom: 14px;
+}
+
+.folder-item,
+.folder-plan {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--pink-50);
+  padding: 8px;
+}
+
+.folder-item.is-active {
+  border-color: var(--pink-400);
+  box-shadow: inset 0 0 0 1px var(--pink-400);
+}
+
+.folder-item button,
+.folder-plan button {
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+.folder-item button:first-child,
+.folder-plan button:first-child {
+  display: grid;
+  gap: 4px;
+  min-height: 44px;
+  padding: 8px;
+}
+
+.folder-item span,
+.folder-plan strong {
+  overflow-wrap: anywhere;
+  font-weight: 900;
+}
+
+.folder-item small,
+.folder-plan small,
+.folder-plan span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.folder-delete {
+  align-self: center;
+  color: var(--rose) !important;
+  background: var(--card-bg) !important;
+  padding: 8px 10px;
+  font-weight: 900;
+  text-align: center !important;
+}
+
+.plan-builder-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wide-field,
+.plan-builder-form .type-toggle,
+.option-grid,
+.routine-option,
+.plan-actions {
+  grid-column: 1 / -1;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.7fr) minmax(160px, 1fr) minmax(140px, 0.7fr) minmax(140px, 0.8fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.check-option {
+  display: flex;
+  align-items: center;
+  min-height: 43px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--pink-50);
+  color: var(--ink);
+  padding: 10px;
+}
+
+.check-option input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+  accent-color: var(--pink-400);
+}
+
+.check-option:has(input:disabled) {
+  opacity: 0.52;
+}
+
+.routine-option {
+  justify-content: flex-start;
+}
+
+.plan-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.secondary-action {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--rose);
+  font-weight: 900;
+}
+
+.folder-plan.is-done {
+  opacity: 0.62;
+}
+
+.folder-plan.is-done strong {
+  text-decoration: line-through;
+}
+
+.folder-plan-list > p {
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 18px;
+  text-align: center;
 }
 
 .todo-item {
@@ -1019,12 +1196,17 @@ input:focus {
 }
 
 @media (max-width: 1180px) {
-  .planner-grid {
+  .planner-grid,
+  .plan-workspace {
     grid-template-columns: 180px minmax(0, 1fr);
   }
 
-  .right-rail {
+  .right-rail,
+  .folder-preview {
     grid-column: 1 / -1;
+  }
+
+  .right-rail {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
@@ -1036,7 +1218,8 @@ input:focus {
 
   .top-bar,
   .planner-grid,
-  .right-rail {
+  .right-rail,
+  .plan-workspace {
     grid-template-columns: 1fr;
   }
 
@@ -1048,15 +1231,23 @@ input:focus {
   }
 
   .top-actions,
+  .section-tabs,
   .type-toggle,
-  .form-row {
+  .form-row,
+  .option-grid,
+  .plan-actions {
     width: 100%;
     grid-template-columns: 1fr;
   }
 
-  .top-actions {
+  .top-actions,
+  .section-tabs {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .section-tabs {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .cover-text {
@@ -1069,6 +1260,10 @@ input:focus {
 
   .week-calendar {
     grid-template-columns: 54px repeat(7, minmax(104px, 1fr));
+  }
+
+  .folder-preview {
+    grid-column: auto;
   }
 
   .clock-card {
