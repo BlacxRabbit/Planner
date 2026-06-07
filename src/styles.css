@@ -29,7 +29,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -55,8 +56,17 @@ button {
   --header-bg: #fff4f8;
   --cell-hover: #fff8fb;
   --pill-bg: #ffe3ee;
-  --pill-border: #f3c3d6;
+  --pill-border: #ee7faa;
   --pill-text: #8d3f60;
+  --todo-panel-bg: #1d1b1f;
+  --todo-bucket-bg: #33202b;
+  --todo-bucket-border: #5b344a;
+  --todo-text: #f6eaf0;
+  --todo-muted: #bbaab4;
+  --life-card-bg: #202020;
+  --life-card-text: #ffc0db;
+  --detail-bg: #fff;
+  --detail-ink: #26242a;
   --clock-accent: #f7b8cf;
   --timer-bg: linear-gradient(135deg, var(--pink-100), var(--lilac));
 }
@@ -65,7 +75,8 @@ button {
 .cover-strip,
 .planner-grid,
 .section-tabs,
-.plan-workspace {
+.plan-workspace,
+.weekly-planner {
   max-width: 1480px;
   margin-left: auto;
   margin-right: auto;
@@ -96,6 +107,15 @@ button {
   --pill-bg: #263f53;
   --pill-border: #547b99;
   --pill-text: #d5edf9;
+  --todo-panel-bg: #101923;
+  --todo-bucket-bg: #1a2a38;
+  --todo-bucket-border: #39556b;
+  --todo-text: #dcecf6;
+  --todo-muted: #94a8b8;
+  --life-card-bg: #172432;
+  --life-card-text: #b9d7ea;
+  --detail-bg: #111b25;
+  --detail-ink: #e4edf4;
   --clock-accent: #89b4d0;
   --timer-bg: linear-gradient(135deg, #203648, #111b25);
   color-scheme: dark;
@@ -126,6 +146,15 @@ button {
   --pill-bg: #143d25;
   --pill-border: #2fa761;
   --pill-text: #b8ffd0;
+  --todo-panel-bg: #07100c;
+  --todo-bucket-bg: #102318;
+  --todo-bucket-border: #1e4c32;
+  --todo-text: #dcefe2;
+  --todo-muted: #7fa88d;
+  --life-card-bg: #0f1d16;
+  --life-card-text: #a7f7be;
+  --detail-bg: #f8fff9;
+  --detail-ink: #101916;
   --clock-accent: #57d787;
   color-scheme: dark;
 }
@@ -540,14 +569,14 @@ button {
 
 .planner-grid {
   display: grid;
-  grid-template-columns: 210px minmax(0, 1fr) 300px;
+  grid-template-columns: 210px minmax(640px, 1fr) 280px;
   gap: 16px;
   align-items: start;
 }
 
 .plan-workspace {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 340px;
+  grid-template-columns: 240px minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -561,6 +590,7 @@ button {
 .left-rail > section,
 .right-rail > section,
 .calendar-card,
+.quick-task-panel,
 .folder-panel,
 .plan-editor,
 .folder-preview {
@@ -777,6 +807,145 @@ form,
   font-weight: 800;
 }
 
+.todo-card {
+  background: var(--todo-panel-bg) !important;
+  color: var(--todo-text);
+}
+
+.todo-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--todo-text);
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.todo-heading span {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.todo-heading strong {
+  color: var(--pink-400);
+  font-size: 0.86rem;
+}
+
+.todo-card .quick-plan-form input {
+  background: color-mix(in srgb, var(--todo-bucket-bg) 80%, #000 20%);
+  border-color: var(--todo-bucket-border);
+  color: var(--todo-text);
+}
+
+.todo-card .quick-plan-actions button {
+  background: var(--todo-bucket-bg);
+  border-color: var(--todo-bucket-border);
+  color: var(--todo-text);
+}
+
+.todo-card .quick-plan-actions button.is-active,
+.todo-card .quick-plan-actions button[type="submit"] {
+  background: var(--pink-400);
+  color: #fff;
+}
+
+.todo-buckets {
+  display: grid;
+  gap: 12px;
+}
+
+.todo-bucket {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--todo-bucket-border);
+  border-radius: 6px;
+  background: var(--todo-bucket-bg);
+  padding: 10px;
+}
+
+.todo-bucket-art {
+  min-height: 58px;
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at 28% 28%, color-mix(in srgb, #fff 84%, var(--pink-400)) 0 7px, transparent 8px),
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-400) 84%, var(--todo-bucket-bg)), color-mix(in srgb, var(--pink-200) 62%, var(--card-bg))),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.16) 0 8px, transparent 8px 16px);
+  overflow: hidden;
+}
+
+.todo-next .todo-bucket-art {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-400) 78%, var(--todo-bucket-bg)), color-mix(in srgb, var(--pink-200) 66%, var(--card-bg))),
+    repeating-linear-gradient(-35deg, rgba(255, 255, 255, 0.18) 0 10px, transparent 10px 20px);
+}
+
+.todo-later .todo-bucket-art {
+  background:
+    radial-gradient(circle at 74% 24%, color-mix(in srgb, #fff 78%, var(--pink-400)) 0 8px, transparent 9px),
+    linear-gradient(160deg, color-mix(in srgb, var(--pink-200) 82%, var(--card-bg)), color-mix(in srgb, var(--pink-400) 72%, var(--todo-bucket-bg)));
+}
+
+.todo-bucket h3 {
+  margin: 0;
+  color: var(--todo-text);
+  font-family: "Courier New", monospace;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.todo-bucket-list {
+  display: grid;
+  gap: 5px;
+}
+
+.todo-bucket-list p {
+  margin: 0;
+  color: var(--todo-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.todo-mini-item {
+  display: grid;
+  grid-template-columns: 13px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--todo-text);
+  padding: 0;
+  text-align: left;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.todo-mini-item span {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--todo-text);
+  background: transparent;
+}
+
+.todo-mini-item.is-done {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.todo-add-button {
+  justify-self: start;
+  min-height: 25px;
+  border: 1px solid var(--todo-bucket-border);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--pink-400) 46%, var(--todo-bucket-bg));
+  color: #fff;
+  padding: 0 10px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
 .folder-form {
   margin-bottom: 14px;
 }
@@ -836,6 +1005,825 @@ form,
   padding: 8px 10px;
   font-weight: 900;
   text-align: center !important;
+}
+
+.reminder-sidebar {
+  position: sticky;
+  top: 16px;
+}
+
+.reminder-list-nav {
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.reminder-list-button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--pink-50);
+  color: var(--ink);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.reminder-list-button span {
+  overflow-wrap: anywhere;
+  font-weight: 900;
+}
+
+.reminder-list-button strong {
+  display: grid;
+  min-width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--rose);
+  font-size: 0.82rem;
+}
+
+.open-folder {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+}
+
+.folder-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.folder-row > button:first-child {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 30px;
+  padding: 0;
+}
+
+.folder-row small {
+  display: grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--card-bg);
+}
+
+.open-folder .folder-delete {
+  padding: 6px 7px;
+  font-size: 0.7rem;
+}
+
+.folder-mini-tasks {
+  display: grid;
+  gap: 3px;
+  padding-left: 4px;
+}
+
+.folder-mini-task {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  min-height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.folder-mini-task span {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--pink-400);
+  border-radius: 4px;
+  background: var(--card-bg);
+}
+
+.folder-mini-task.is-done {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.folder-mini-tasks p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.reminder-list-button.is-active,
+.reminder-sidebar .folder-item.is-active {
+  border-color: var(--pink-400);
+  box-shadow: inset 0 0 0 1px var(--pink-400);
+}
+
+.compact-folder-form {
+  border-top: 1px dashed var(--line);
+  padding-top: 14px;
+}
+
+.reminder-quick-form {
+  grid-template-columns: minmax(0, 1fr) 120px;
+}
+
+.reminder-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reminder-list-head h2 {
+  margin: 0;
+  font-size: 1.65rem;
+}
+
+.reminder-list-head .secondary-action {
+  width: auto;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.reminder-tasks {
+  display: grid;
+  gap: 8px;
+}
+
+.reminder-task {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+}
+
+.reminder-check {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--pink-400);
+  border-radius: 7px;
+  background: var(--card-bg);
+  padding: 0;
+}
+
+.reminder-task.is-done .reminder-check {
+  background: var(--pink-400);
+}
+
+.reminder-task-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  text-align: left;
+}
+
+.reminder-task-body strong {
+  overflow-wrap: anywhere;
+}
+
+.reminder-task-body small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.reminder-task.is-done .reminder-task-body strong {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.inline-reminder-form {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.inline-reminder-form span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--pink-400);
+  color: #fff;
+  font-weight: 900;
+}
+
+.inline-reminder-form button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+  padding: 0 14px;
+  font-weight: 900;
+}
+
+.board-workspace {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.board-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.board-top span,
+.board-lane-head span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.board-top h2 {
+  margin: 4px 0 0;
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+}
+
+.board-top > strong {
+  display: grid;
+  min-width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+}
+
+.board-top .secondary-action {
+  width: auto;
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.board-quick-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) minmax(240px, 1.4fr) minmax(160px, 0.7fr) minmax(150px, 0.65fr) 120px;
+  gap: 12px;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-50) 84%, transparent), color-mix(in srgb, var(--card-bg) 92%, transparent)),
+    var(--card-bg);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.board-quick-copy {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.board-quick-copy > span {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.board-quick-copy strong {
+  display: block;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.board-quick-copy small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.board-quick-panel input,
+.board-quick-panel select {
+  min-height: 48px;
+}
+
+.board-quick-panel button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+  font-weight: 900;
+}
+
+.board-scroll {
+  display: grid;
+  grid-auto-columns: minmax(240px, 280px);
+  grid-auto-flow: column;
+  gap: 14px;
+  min-height: 560px;
+  overflow-x: auto;
+  padding: 4px 4px 12px;
+  scroll-snap-type: x proximity;
+}
+
+.board-lane {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  min-height: 520px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 92%, transparent), color-mix(in srgb, var(--pink-50) 78%, transparent)),
+    var(--card-bg);
+  box-shadow: var(--shadow);
+  padding: 12px;
+  scroll-snap-align: start;
+}
+
+.board-lane-head {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-height: 116px;
+  align-content: end;
+  border-radius: 7px;
+  overflow: hidden;
+  padding: 12px;
+  color: var(--todo-text);
+  background:
+    radial-gradient(circle at 80% 20%, color-mix(in srgb, #fff 70%, var(--pink-400)) 0 12px, transparent 13px),
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-400) 78%, var(--todo-bucket-bg)), color-mix(in srgb, var(--pink-200) 58%, var(--card-bg))),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.16) 0 10px, transparent 10px 20px);
+}
+
+.lane-1 .board-lane-head {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-400) 72%, var(--todo-bucket-bg)), color-mix(in srgb, var(--pink-200) 66%, var(--card-bg))),
+    repeating-linear-gradient(-35deg, rgba(255, 255, 255, 0.18) 0 10px, transparent 10px 20px);
+}
+
+.lane-2 .board-lane-head {
+  background:
+    radial-gradient(circle at 18% 28%, color-mix(in srgb, #fff 76%, var(--pink-400)) 0 10px, transparent 11px),
+    linear-gradient(160deg, color-mix(in srgb, var(--pink-200) 78%, var(--card-bg)), color-mix(in srgb, var(--pink-400) 70%, var(--todo-bucket-bg)));
+}
+
+.lane-3 .board-lane-head,
+.new-board-lane .board-lane-head {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-100) 68%, var(--card-bg)), color-mix(in srgb, var(--pink-400) 38%, var(--todo-bucket-bg))),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 8px, transparent 8px 16px);
+}
+
+.board-lane-head strong {
+  overflow-wrap: anywhere;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.board-lane-head small {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card-bg) 84%, #fff);
+  color: var(--rose);
+  font-weight: 900;
+}
+
+.board-card-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.board-empty {
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 12px;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.board-task-card {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--pink-400);
+  border-radius: 7px;
+  background: var(--card-bg);
+  padding: 10px;
+}
+
+.board-check {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--pink-400);
+  border-radius: 5px;
+  background: transparent;
+  padding: 0;
+}
+
+.board-task-card.is-done .board-check {
+  background: var(--pink-400);
+  box-shadow: inset 0 0 0 3px var(--card-bg);
+}
+
+.board-task-body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  text-align: left;
+}
+
+.board-task-body strong {
+  overflow-wrap: anywhere;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.board-task-body small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.board-task-card.is-done .board-task-body strong {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.board-delete,
+.board-remove-lane {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--cream);
+  color: var(--rose);
+  padding: 6px 8px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.new-list-form {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.board-add-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-50) 78%, transparent), color-mix(in srgb, var(--card-bg) 92%, transparent)),
+    var(--card-bg);
+  padding: 12px;
+}
+
+.board-add-title {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.board-add-title span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--pink-400);
+  color: #fff;
+  font-weight: 900;
+}
+
+.board-add-title strong {
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.board-add-form input,
+.new-list-form input {
+  min-height: 46px;
+}
+
+.board-add-form button,
+.new-list-form button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+  font-weight: 900;
+}
+
+.board-add-form button {
+  width: 100%;
+}
+
+.new-list-form {
+  grid-template-columns: 1fr;
+}
+
+.new-list-form button {
+  grid-column: auto;
+}
+
+.new-board-lane {
+  min-height: 360px;
+  opacity: 0.92;
+}
+
+.weekly-planner {
+  display: grid;
+  gap: 16px;
+}
+
+.weekly-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.weekly-top span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.weekly-top h2 {
+  margin: 4px 0 0;
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+}
+
+.weekly-top > strong {
+  display: grid;
+  min-width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+}
+
+.weekly-top .secondary-action {
+  width: auto;
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(180px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.weekly-day {
+  display: grid;
+  grid-template-rows: auto minmax(260px, 1fr) auto;
+  gap: 10px;
+  min-height: 520px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  padding: 10px;
+}
+
+.weekly-day-head {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  min-height: 96px;
+  align-content: end;
+  border-radius: 7px;
+  padding: 12px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 20%, color-mix(in srgb, #fff 70%, var(--pink-400)) 0 11px, transparent 12px),
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-400) 76%, var(--todo-bucket-bg)), color-mix(in srgb, var(--pink-200) 58%, var(--card-bg)));
+  color: var(--todo-text);
+}
+
+.weekly-day-1 .weekly-day-head,
+.weekly-day-5 .weekly-day-head {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-400) 70%, var(--todo-bucket-bg)), color-mix(in srgb, var(--pink-100) 68%, var(--card-bg))),
+    repeating-linear-gradient(-35deg, rgba(255, 255, 255, 0.16) 0 10px, transparent 10px 20px);
+}
+
+.weekly-day-2 .weekly-day-head,
+.weekly-day-6 .weekly-day-head {
+  background:
+    radial-gradient(circle at 20% 24%, color-mix(in srgb, #fff 74%, var(--pink-400)) 0 10px, transparent 11px),
+    linear-gradient(160deg, color-mix(in srgb, var(--pink-200) 76%, var(--card-bg)), color-mix(in srgb, var(--pink-400) 64%, var(--todo-bucket-bg)));
+}
+
+.weekly-day-head span {
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.weekly-day-head strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.weekly-day-head small {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  min-width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card-bg) 84%, #fff);
+  color: var(--rose);
+  font-weight: 900;
+}
+
+.weekly-task-list {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.weekly-task-list > p {
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 12px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.weekly-task {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--pink-400);
+  border-radius: 7px;
+  background: var(--card-bg);
+  padding: 9px;
+}
+
+.weekly-check {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--pink-400);
+  border-radius: 5px;
+  background: transparent;
+  padding: 0;
+}
+
+.weekly-task.is-done .weekly-check {
+  background: var(--pink-400);
+  box-shadow: inset 0 0 0 3px var(--card-bg);
+}
+
+.weekly-task-body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  text-align: left;
+}
+
+.weekly-task-body strong {
+  overflow-wrap: anywhere;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.weekly-task-body small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.weekly-task.is-done .weekly-task-body strong {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.weekly-delete {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--cream);
+  color: var(--rose);
+  padding: 5px 7px;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.weekly-add-form {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.weekly-add-form span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--pink-400);
+  color: #fff;
+  font-weight: 900;
+}
+
+.weekly-add-form input {
+  min-height: 38px;
+}
+
+.weekly-add-form button {
+  grid-column: 2;
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+  font-weight: 900;
 }
 
 .plan-builder-form {
@@ -952,9 +1940,49 @@ form,
   margin: 0;
 }
 
-.week-calendar {
+.calendar-head-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.calendar-nav-actions,
+.calendar-view-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.calendar-nav-actions button,
+.calendar-view-toggle button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--rose);
+  padding: 0 10px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.calendar-view-toggle button.is-active {
+  background: var(--pink-400);
+  color: #fff;
+}
+
+.calendar-new-task {
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+  padding: 0 14px;
+  font-weight: 900;
+}
+
+.week-calendar,
+.month-calendar {
   display: grid;
-  grid-template-columns: 62px repeat(7, minmax(150px, 1fr));
   grid-template-rows: 76px;
   grid-auto-rows: 72px;
   max-height: 760px;
@@ -964,8 +1992,17 @@ form,
   background: #fff;
 }
 
+.week-calendar {
+  grid-template-columns: 62px repeat(7, minmax(var(--day-min, 178px), 1fr));
+}
+
+.month-calendar {
+  grid-template-columns: 62px repeat(var(--month-days, 31), minmax(var(--month-day-min, 150px), 1fr));
+}
+
 .time-corner,
 .day-head,
+.month-day-head,
 .time-label,
 .time-cell {
   border-right: 1px solid var(--line);
@@ -973,12 +2010,103 @@ form,
 }
 
 .time-corner,
-.day-head {
+.day-head,
+.month-day-head {
   position: sticky;
   top: 0;
   z-index: 5;
   min-height: 76px;
   background: var(--header-bg);
+}
+
+.year-calendar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.year-month {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  padding: 12px;
+}
+
+.year-month-head button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.year-month-head button:hover {
+  color: var(--rose);
+}
+
+.year-weekdays,
+.year-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.year-weekdays span {
+  display: grid;
+  min-height: 20px;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.year-empty-day,
+.year-day {
+  min-height: 30px;
+}
+
+.year-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--ink);
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.year-day:hover,
+.year-day.is-selected {
+  border-color: var(--pink-400);
+  background: var(--pink-50);
+}
+
+.year-day.has-task {
+  color: var(--rose);
+}
+
+.year-day small {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  min-width: 17px;
+  height: 17px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--pink-400);
+  color: #fff;
+  font-size: 0.58rem;
 }
 
 .time-corner {
@@ -991,7 +2119,8 @@ form,
   font-weight: 900;
 }
 
-.day-head {
+.day-head,
+.month-day-head {
   display: grid;
   place-items: center;
   gap: 4px;
@@ -999,14 +2128,16 @@ form,
   color: var(--ink);
 }
 
-.day-head span {
+.day-head span,
+.month-day-head span {
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 900;
   text-transform: capitalize;
 }
 
-.day-head strong {
+.day-head strong,
+.month-day-head strong {
   display: grid;
   width: 38px;
   height: 38px;
@@ -1016,9 +2147,29 @@ form,
   font-size: 1.25rem;
 }
 
-.day-head.is-selected strong {
+.day-head.is-selected strong,
+.month-day-head.is-selected strong {
   color: #fff;
   background: var(--pink-400);
+}
+
+.month-day-head {
+  position: sticky;
+}
+
+.month-day-head small {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--pink-400);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 900;
 }
 
 .time-label {
@@ -1055,46 +2206,47 @@ form,
 
 .event-pill {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) 24px;
-  gap: 6px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 7px;
   align-items: start;
   position: relative;
   z-index: 2;
   align-self: start;
-  height: max(24px, calc(100% - 10px - var(--stack-offset, 0px)));
-  margin: 5px 6px;
-  top: var(--stack-offset, 0);
-  border: 1px solid var(--pill-border);
-  border-radius: 7px;
+  justify-self: start;
+  width: var(--lane-width, calc(100% - 10px));
+  height: calc(100% - 10px);
+  margin: 5px 0 5px var(--lane-left, 5px);
+  border: 0;
+  border-left: 4px solid var(--pill-border);
+  border-radius: 4px;
   background: var(--pill-bg);
   color: var(--pill-text);
-  padding: 6px 7px;
-  font-size: 0.74rem;
-  font-weight: 900;
+  padding: 7px 9px;
+  font-size: 0.78rem;
+  font-weight: 800;
   isolation: isolate;
   min-height: 0;
-  max-height: max(24px, calc(100% - 10px - var(--stack-offset, 0px)));
+  max-height: calc(100% - 10px);
   overflow: hidden;
   overflow-wrap: anywhere;
 }
 
-.slot-add-button {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 4;
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--card-bg);
-  color: var(--rose);
+.event-pill.no-check {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.event-check {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--pill-border);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--card-bg) 80%, #fff 20%);
   padding: 0;
-  font-weight: 900;
-  line-height: 1;
-  box-shadow: 0 8px 18px rgba(20, 18, 22, 0.12);
+}
+
+.event-pill.is-done .event-check {
+  background: var(--pill-border);
+  box-shadow: inset 0 0 0 3px var(--pill-bg);
 }
 
 .event-pill.is-done {
@@ -1103,23 +2255,6 @@ form,
 
 .event-pill.is-done .event-title span {
   text-decoration: line-through;
-}
-
-.event-pill.no-check {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.event-check {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--pink-400);
-  border-radius: 6px;
-  background: var(--card-bg);
-  padding: 0;
-}
-
-.event-pill.is-done .event-check {
-  background: var(--pink-400);
 }
 
 .event-title {
@@ -1132,21 +2267,21 @@ form,
   color: inherit;
   padding: 0;
   text-align: left;
-  font-weight: 900;
+  font-weight: 800;
   overflow: hidden;
 }
 
 .event-title span {
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 
 .event-title small {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--pill-text) 72%, var(--muted));
   font-size: 0.68rem;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .slot-popover-backdrop {
@@ -1159,6 +2294,10 @@ form,
   padding: 18px;
 }
 
+.quick-task-panel {
+  grid-column: 1 / -1;
+}
+
 .slot-popover {
   position: relative;
   width: min(420px, 100%);
@@ -1167,6 +2306,65 @@ form,
   background: var(--card-bg);
   box-shadow: var(--shadow);
   padding: 18px;
+}
+
+.task-detail-bubble {
+  position: relative;
+  z-index: 8;
+  align-self: start;
+  width: min(380px, calc((var(--day-min, 178px) * 2) - 20px));
+  max-width: calc(100% - 16px);
+  border: 4px solid #111;
+  border-radius: 6px;
+  background: var(--detail-bg);
+  color: var(--detail-ink);
+  box-shadow: 8px 8px 0 rgba(17, 17, 17, 0.12);
+  padding: 18px;
+  margin: 6px 8px;
+}
+
+.task-detail-bubble::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 38px;
+  width: 22px;
+  height: 22px;
+  border-left: 4px solid #111;
+  border-bottom: 4px solid #111;
+  background: var(--detail-bg);
+  transform: rotate(45deg);
+}
+
+.task-detail-bubble.is-left::before {
+  left: auto;
+  right: -16px;
+  border-left: 0;
+  border-bottom: 0;
+  border-right: 4px solid #111;
+  border-top: 4px solid #111;
+}
+
+.task-detail-bubble .popup-close {
+  top: 10px;
+  right: 10px;
+}
+
+.task-detail-bubble .detail-head,
+.task-detail-bubble p,
+.task-detail-bubble .detail-note,
+.task-detail-bubble label,
+.task-detail-bubble .slot-popover-actions {
+  position: relative;
+  z-index: 1;
+}
+
+.task-detail-bubble .detail-note {
+  background: color-mix(in srgb, var(--detail-bg) 88%, var(--card-bg));
+}
+
+.task-detail-bubble .slot-time-row {
+  grid-template-columns: 1fr 1fr;
 }
 
 .popup-close {
@@ -1201,7 +2399,7 @@ form,
 
 .slot-time-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -1232,10 +2430,10 @@ textarea:focus {
 }
 
 .detail-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding-right: 40px;
 }
 
 .detail-head span {
@@ -1253,6 +2451,7 @@ textarea:focus {
 }
 
 .detail-head button {
+  justify-self: start;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--cream);
@@ -1291,6 +2490,161 @@ textarea:focus {
   background: #242126;
   font-size: clamp(3.4rem, 7vw, 5.4rem);
   line-height: 1;
+}
+
+.personal-life-card {
+  display: grid;
+  gap: 12px;
+}
+
+.personal-life-card .section-title {
+  margin-bottom: 0;
+}
+
+.personal-life-card .section-title span {
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+}
+
+.life-folder-list {
+  display: grid;
+  gap: 10px;
+}
+
+.life-folder-card {
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--life-card-bg);
+  color: var(--todo-text);
+  padding: 8px;
+  text-align: left;
+  box-shadow: 0 10px 22px rgba(40, 20, 32, 0.08);
+}
+
+.life-folder-card strong {
+  display: block;
+  color: var(--life-card-text);
+  font-family: "Courier New", monospace;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.life-folder-art {
+  display: block;
+  min-height: 76px;
+  border-radius: 5px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--pink-400) 48%, #fff), color-mix(in srgb, var(--card-bg) 78%, #fff)),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--pink-400) 26%, transparent) 0 8px, transparent 8px 16px);
+}
+
+.life-line {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--card-bg) 82%, #fff), color-mix(in srgb, var(--pink-200) 72%, var(--card-bg))),
+    repeating-linear-gradient(28deg, color-mix(in srgb, var(--pink-400) 38%, transparent) 0 2px, transparent 2px 12px);
+}
+
+.life-room {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--card-bg) 78%, #fff), color-mix(in srgb, var(--pink-400) 58%, var(--card-bg))),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.42) 0 30%, transparent 30% 100%);
+}
+
+.life-folder-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px;
+  gap: 8px;
+}
+
+.life-folder-form input {
+  min-height: 38px;
+}
+
+.life-folder-form button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+  font-weight: 900;
+}
+
+.life-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 18, 22, 0.28);
+  padding: 18px;
+}
+
+.life-popup {
+  position: relative;
+  width: min(440px, 100%);
+  border: 3px solid color-mix(in srgb, var(--line) 62%, #111);
+  border-radius: 8px;
+  background: var(--detail-bg);
+  color: var(--detail-ink);
+  box-shadow: 10px 10px 0 rgba(17, 17, 17, 0.14);
+  padding: 20px;
+}
+
+.life-popup .section-title {
+  padding-right: 42px;
+}
+
+.life-popup ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.life-popup li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 0;
+  font-weight: 800;
+}
+
+.life-popup li button {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--pink-400);
+  border-radius: 4px;
+  background: transparent;
+  padding: 0;
+}
+
+.life-popup li.is-done button {
+  background: var(--pink-400);
+  box-shadow: inset 0 0 0 3px var(--detail-bg);
+}
+
+.life-popup li.is-done span {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.life-item-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.life-item-form button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--pink-400);
+  color: #fff;
+  font-weight: 900;
 }
 
 .timer-card,
@@ -1336,7 +2690,8 @@ label {
   font-weight: 900;
 }
 
-input {
+input,
+select {
   width: 100%;
   min-height: 43px;
   border: 1px solid var(--line);
@@ -1346,7 +2701,8 @@ input {
   padding: 0 11px;
 }
 
-input:focus {
+input:focus,
+select:focus {
   outline: 3px solid rgba(238, 127, 170, 0.2);
   border-color: var(--pink-400);
 }
@@ -1493,7 +2849,7 @@ input:focus {
   }
 
   .section-tabs {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .cover-text {
@@ -1506,6 +2862,10 @@ input:focus {
 
   .week-calendar {
     grid-template-columns: 54px repeat(7, minmax(136px, 1fr));
+  }
+
+  .month-calendar {
+    grid-template-columns: 54px repeat(var(--month-days, 31), minmax(132px, 1fr));
   }
 
   .folder-preview {
@@ -1522,5 +2882,68 @@ input:focus {
 
   .clock-card strong {
     min-height: 92px;
+  }
+}
+
+.board-workspace {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 1180px) {
+  .board-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .board-scroll {
+    grid-auto-columns: minmax(230px, 270px);
+  }
+
+  .board-quick-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .board-quick-copy,
+  .board-quick-panel button {
+    grid-column: 1 / -1;
+  }
+
+  .year-calendar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .board-top {
+    grid-template-columns: 1fr;
+  }
+
+  .board-scroll {
+    grid-auto-columns: minmax(250px, 86vw);
+    min-height: 520px;
+  }
+
+  .board-quick-panel,
+  .year-calendar {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-head-actions,
+  .calendar-nav-actions,
+  .calendar-view-toggle {
+    width: 100%;
+  }
+
+  .calendar-nav-actions button,
+  .calendar-view-toggle button,
+  .calendar-new-task {
+    flex: 1;
+  }
+
+  .weekly-top {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-grid {
+    grid-template-columns: repeat(7, minmax(230px, 82vw));
   }
 }
